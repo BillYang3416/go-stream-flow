@@ -39,8 +39,12 @@ func Run(cfg *config.Config) {
 	userProfileUseCase := usecase.NewUserProfileUseCase(
 		repo.NewUserProfileRepo(pg),
 	)
+	userUploadedFileCase := usecase.NewUserUploadedFileUseCase(
+		repo.NewUserUploadedFileRepo(pg),
+	)
+
 	// HTTP Server
-	v1.NewRouter(handler, l, userProfileUseCase)
+	v1.NewRouter(handler, l, userProfileUseCase, userUploadedFileCase)
 	httpServer := &http.Server{
 		Addr:    ":" + cfg.HTTP.Port,
 		Handler: handler,

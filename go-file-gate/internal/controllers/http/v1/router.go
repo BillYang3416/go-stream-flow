@@ -14,7 +14,7 @@ import (
 	_ "github.com/bgg/go-file-gate/docs"
 )
 
-func NewRouter(handler *gin.Engine, l logger.Logger, u usecase.UserProfile) {
+func NewRouter(handler *gin.Engine, l logger.Logger, u usecase.UserProfile, uu usecase.UserUploadedFile) {
 
 	// logging each http request
 	handler.Use(gin.Logger())
@@ -24,6 +24,7 @@ func NewRouter(handler *gin.Engine, l logger.Logger, u usecase.UserProfile) {
 	{
 		NewUserProfileRoutes(h, u, l)
 		NewAuthRoutes(h, u, l)
+		newUserUploadedFileRoutes(h, uu, l)
 	}
 
 	// Swagger
