@@ -16,7 +16,7 @@ type userProfileRoutes struct {
 	l logger.Logger
 }
 
-func newUserProfileRoutes(handler *gin.RouterGroup, u usecase.UserProfile, l logger.Logger) {
+func NewUserProfileRoutes(handler *gin.RouterGroup, u usecase.UserProfile, l logger.Logger) {
 
 	r := &userProfileRoutes{u, l}
 

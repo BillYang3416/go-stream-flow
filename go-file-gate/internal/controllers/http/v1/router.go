@@ -22,7 +22,7 @@ func NewRouter(handler *gin.Engine, l logger.Logger, u usecase.UserProfile) {
 	// Routers
 	h := handler.Group("/api/v1")
 	{
-		newUserProfileRoutes(h, u, l)
+		NewUserProfileRoutes(h, u, l)
 		NewAuthRoutes(h, u, l)
 	}
 
