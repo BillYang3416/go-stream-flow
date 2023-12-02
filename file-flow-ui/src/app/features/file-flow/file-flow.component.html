@@ -9,9 +9,12 @@
         <input
           matInput
           placeholder="Enter your email"
-          type="email"
-          [(ngModel)]="emailRecipient"
+          required
+          [formControl]="emailRecipient"
         />
+        <mat-error *ngIf="emailRecipient.invalid">
+          {{ getEmailErrorMessage() }}
+        </mat-error>
       </mat-form-field>
       <div class="file-upload-wrapper">
         <input

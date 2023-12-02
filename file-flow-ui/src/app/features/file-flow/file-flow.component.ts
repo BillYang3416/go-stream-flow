@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { FormControl, Validators } from '@angular/forms';
 import { ApiPrefix, ApiService } from 'src/app/core/services/api.service';
 
 @Component({
@@ -9,7 +10,7 @@ import { ApiPrefix, ApiService } from 'src/app/core/services/api.service';
 export class FileFlowComponent {
   private selectedFile!: File;
 
-  emailRecipient = '';
+  emailRecipient = new FormControl('', [Validators.required, Validators.email]);
 
   fileName = '';
 
@@ -24,20 +25,20 @@ export class FileFlowComponent {
   }
 
   onReset() {
-    this.emailRecipient = '';
+    this.emailRecipient.reset();
     this.fileName = '';
     this.selectedFile = undefined!;
   }
 
   onSubmit() {
-    if (!this.emailRecipient || !this.fileName) {
-      alert('Please enter an email and select a file');
+    if (!this.fileName) {
+      alert('Please select a file');
       return;
     }
 
     const formData = new FormData();
     formData.append('file', this.selectedFile);
-    formData.append('emailRecipient', this.emailRecipient);
+    formData.append('emailRecipient', this.emailRecipient.value!);
 
     this.apiSvc.post(ApiPrefix.USER_UPLOADED_FILES, '', formData).subscribe({
       next: (_) => {
@@ -47,5 +48,13 @@ export class FileFlowComponent {
         alert('Error uploading file' + err.message);
       },
     });
+  }
+
+  getEmailErrorMessage() {
+    if (this.emailRecipient.hasError('required')) {
+      return 'You must enter a value';
+    }
+
+    return this.emailRecipient.hasError('email') ? 'Not a valid email' : '';
   }
 }
