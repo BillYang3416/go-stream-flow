@@ -6,3 +6,17 @@ CREATE TABLE user_profiles (
     access_token VARCHAR(255) NOT NULL,
     refresh_token VARCHAR(255) NOT NULL
 );
+
+-- User File
+CREATE TABLE user_uploaded_files (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    size BIGINT NOT NULL,
+    content BYTEA,
+    user_id VARCHAR(255) NOT NULL REFERENCES user_profiles(user_id),
+    created_at TIMESTAMPTZ NOT NULL,
+    email_sent BOOLEAN NOT NULL,
+    email_sent_at TIMESTAMPTZ,
+    email_recipient VARCHAR(255),
+    error_message TEXT
+);
