@@ -17,3 +17,11 @@ type UserProfileRepo interface {
 	GetByID(context.Context, string) (entity.UserProfile, error)
 	UpdateRefreshToken(context.Context, string, string) error
 }
+
+type UserUploadedFile interface {
+	Create(context.Context, entity.UserUploadedFile) (entity.UserUploadedFile, error)
+}
+
+type UserUploadedFileRepo interface {
+	Create(context.Context, entity.UserUploadedFile) error
+}
