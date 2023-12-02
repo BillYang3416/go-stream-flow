@@ -12,6 +12,13 @@ const routes: Routes = [
     loadChildren: () =>
       import('./features/login/login.module').then((m) => m.LoginModule),
   },
+  {
+    path: 'file-flow',
+    loadChildren: () =>
+      import('./features/file-flow/file-flow.module').then(
+        (m) => m.FileFlowModule
+      ),
+  },
 
   { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: '**', redirectTo: '/home' },
