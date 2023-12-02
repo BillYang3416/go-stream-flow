@@ -9,7 +9,7 @@ import { ApiPrefix, ApiService } from 'src/app/core/services/api.service';
 export class FileFlowComponent {
   private selectedFile!: File;
 
-  email = '';
+  emailRecipient = '';
 
   fileName = '';
 
@@ -24,21 +24,28 @@ export class FileFlowComponent {
   }
 
   onReset() {
-    this.email = '';
+    this.emailRecipient = '';
     this.fileName = '';
     this.selectedFile = undefined!;
   }
 
   onSubmit() {
-    if (!this.email || !this.fileName) {
+    if (!this.emailRecipient || !this.fileName) {
       alert('Please enter an email and select a file');
       return;
     }
 
     const formData = new FormData();
     formData.append('file', this.selectedFile);
-    formData.append('email', this.email);
+    formData.append('emailRecipient', this.emailRecipient);
 
-    this.apiSvc.post(ApiPrefix.FILE_FLOW, 'upload', formData).subscribe();
+    this.apiSvc.post(ApiPrefix.USER_UPLOADED_FILES, '', formData).subscribe({
+      next: (_) => {
+        this.onReset();
+      },
+      error: (err) => {
+        alert('Error uploading file' + err.message);
+      },
+    });
   }
 }
