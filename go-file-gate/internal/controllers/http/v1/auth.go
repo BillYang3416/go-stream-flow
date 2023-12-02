@@ -11,6 +11,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/bgg/go-file-gate/config"
 	"github.com/bgg/go-file-gate/internal/entity"
 	"github.com/bgg/go-file-gate/internal/token"
 	"github.com/bgg/go-file-gate/internal/usecase"
@@ -20,15 +21,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const domainUrl = "https://7636-2001-b011-380f-1498-4ce5-495b-6a9d-3e9.ngrok-free.app"
-
 type authRoutes struct {
-	u usecase.UserProfile
-	l logger.Logger
+	domainUrl string
+	u         usecase.UserProfile
+	l         logger.Logger
 }
 
-func NewAuthRoutes(handler *gin.RouterGroup, u usecase.UserProfile, l logger.Logger) {
-	r := authRoutes{u: u, l: l}
+func NewAuthRoutes(cfg *config.Config, handler *gin.RouterGroup, u usecase.UserProfile, l logger.Logger) {
+	r := authRoutes{domainUrl: cfg.App.DomainUrl, u: u, l: l}
 	auth := handler.Group("/auth")
 	{
 		auth.GET("/line-login", r.lineLogin)       // Initiate Line Login
@@ -57,7 +57,7 @@ func (r *authRoutes) lineLogin(c *gin.Context) {
 	state := generateState()
 	lineAuthUrl := fmt.Sprintf("https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=%s&redirect_uri=%s&state=%s&scope=profile%%20openid&nonce=%s",
 		url.QueryEscape(os.Getenv("LINE_CHANNEL_ID")),
-		url.QueryEscape(fmt.Sprintf("%s/api/v1/auth/line-callback", domainUrl)),
+		url.QueryEscape(fmt.Sprintf("%s/api/v1/auth/line-callback", r.domainUrl)),
 		state,
 		state, // nonce can be the same as state for simplicity in this example
 	)
@@ -80,7 +80,7 @@ func (r *authRoutes) lineCallback(c *gin.Context) {
 		return
 	}
 
-	tokens, err := exchangeCodeForTokens(code)
+	tokens, err := r.exchangeCodeForTokens(code)
 	if err != nil {
 		sendErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -136,7 +136,7 @@ func (r *authRoutes) lineCallback(c *gin.Context) {
 		return
 	}
 
-	c.Redirect(http.StatusTemporaryRedirect, domainUrl)
+	c.Redirect(http.StatusTemporaryRedirect, r.domainUrl)
 }
 
 type TokenResponse struct {
@@ -147,14 +147,14 @@ type TokenResponse struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-func exchangeCodeForTokens(code string) (*TokenResponse, error) {
+func (r *authRoutes) exchangeCodeForTokens(code string) (*TokenResponse, error) {
 
 	tokenEndpoint := "https://api.line.me/oauth2/v2.1/token"
 
 	data := url.Values{
 		"grant_type":    {"authorization_code"},
 		"code":          {code},
-		"redirect_uri":  {fmt.Sprintf("%s/api/v1/auth/line-callback", domainUrl)},
+		"redirect_uri":  {fmt.Sprintf("%s/api/v1/auth/line-callback", r.domainUrl)},
 		"client_id":     {os.Getenv("LINE_CHANNEL_ID")},
 		"client_secret": {os.Getenv("LINE_CHANNEL_SECRET")},
 	}

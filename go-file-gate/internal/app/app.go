@@ -44,7 +44,7 @@ func Run(cfg *config.Config) {
 	)
 
 	// HTTP Server
-	v1.NewRouter(handler, l, userProfileUseCase, userUploadedFileCase)
+	v1.NewRouter(cfg, handler, l, userProfileUseCase, userUploadedFileCase)
 	httpServer := &http.Server{
 		Addr:    ":" + cfg.HTTP.Port,
 		Handler: handler,

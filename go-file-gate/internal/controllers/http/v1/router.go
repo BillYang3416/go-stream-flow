@@ -3,6 +3,7 @@ package v1
 import (
 	"net/http"
 
+	"github.com/bgg/go-file-gate/config"
 	"github.com/bgg/go-file-gate/internal/usecase"
 	"github.com/bgg/go-file-gate/pkg/logger"
 	"github.com/gin-contrib/sessions"
@@ -14,7 +15,7 @@ import (
 	_ "github.com/bgg/go-file-gate/docs"
 )
 
-func NewRouter(handler *gin.Engine, l logger.Logger, u usecase.UserProfile, uu usecase.UserUploadedFile) {
+func NewRouter(cfg *config.Config, handler *gin.Engine, l logger.Logger, u usecase.UserProfile, uu usecase.UserUploadedFile) {
 
 	// logging each http request
 	handler.Use(gin.Logger())
@@ -23,7 +24,7 @@ func NewRouter(handler *gin.Engine, l logger.Logger, u usecase.UserProfile, uu u
 	h := handler.Group("/api/v1")
 	{
 		NewUserProfileRoutes(h, u, l)
-		NewAuthRoutes(h, u, l)
+		NewAuthRoutes(cfg, h, u, l)
 		newUserUploadedFileRoutes(h, uu, l)
 	}
 
