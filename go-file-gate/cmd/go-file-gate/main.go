@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/bgg/go-file-gate/config"
 	"github.com/bgg/go-file-gate/internal/app"
@@ -15,7 +17,12 @@ import (
 // @BasePath	/api/v1
 func main() {
 	// cfg, err := config.NewConfig("config/config.yml") for docker
-	cfg, err := config.NewConfig("../../config/config.yml")
+	env := os.Getenv("APP_ENV")
+	if env == "" {
+		env = "local"
+	}
+
+	cfg, err := config.NewConfig(fmt.Sprintf("../../config/config.%s.yml", env))
 
 	if err != nil {
 		log.Fatalf("Config error: %v", err)

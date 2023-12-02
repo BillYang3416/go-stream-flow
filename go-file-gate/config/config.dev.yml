@@ -1,0 +1,17 @@
+app:
+  name: 'GoChatApp'
+  version: '1.0.0'
+
+http:
+  port: '8080'
+
+postgres:
+  pool_max: 10
+
+log:
+  log_level: 'debug'
+
+redis:
+  host: 'redis'
+  port: '6379'
+  password: ''
