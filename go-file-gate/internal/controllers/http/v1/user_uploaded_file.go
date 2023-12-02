@@ -28,7 +28,7 @@ func newUserUploadedFileRoutes(handler *gin.RouterGroup, u usecase.UserUploadedF
 }
 
 type createUserUploadedFileRequest struct {
-	emailRecipient string `form:"emailRecipient"`
+	EmailRecipient string `form:"emailRecipient" example:"johndoe@email.com"  binding:"required,email"`
 }
 
 func (r *userUploadedFileRoutes) create(c *gin.Context) {
