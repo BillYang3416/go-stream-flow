@@ -83,4 +83,5 @@ export class ApiService {
 export enum ApiPrefix {
   AUTH = 'auth',
   USER = 'user-profiles',
+  FILE_FLOW = 'file-flow',
 }
