@@ -1,0 +1,141 @@
+basePath: /api/v1
+definitions:
+  v1.createUserProfileRequest:
+    properties:
+      accessToken:
+        example: 1234567890abcdef1234567890abcdef
+        type: string
+      displayName:
+        example: John Doe
+        type: string
+      pictureUrl:
+        example: https://example.com/picture.jpg
+        type: string
+      userId:
+        example: U1234567890abcdef1234567890abcdef
+        type: string
+    required:
+    - accessToken
+    - displayName
+    - pictureUrl
+    - userId
+    type: object
+  v1.errorResponse:
+    properties:
+      fieldErrs:
+        additionalProperties:
+          type: string
+        type: object
+      message:
+        example: message
+        type: string
+    type: object
+  v1.userProfileResponse:
+    properties:
+      displayName:
+        example: John Doe
+        type: string
+      pictureUrl:
+        example: https://example.com/picture.jpg
+        type: string
+      userId:
+        example: U1234567890abcdef1234567890abcdef
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a Go File Gate API server.
+  version: "1.0"
+paths:
+  /auth/line-callback:
+    get:
+      description: Handler the redirect from Line Login
+      parameters:
+      - description: code
+        in: query
+        name: code
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      summary: Line Callback
+      tags:
+      - Auth
+  /auth/line-login:
+    get:
+      description: Redirect to Line Login
+      responses:
+        "302":
+          description: ok
+          schema:
+            type: string
+      summary: Line Login
+      tags:
+      - Auth
+  /auth/logout:
+    get:
+      description: Logout
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      summary: Logout
+      tags:
+      - Auth
+  /user-profiles:
+    post:
+      consumes:
+      - application/json
+      description: Create user profile
+      parameters:
+      - description: user profile information
+        in: body
+        name: createUserProfileRequest
+        required: true
+        schema:
+          $ref: '#/definitions/v1.createUserProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.userProfileResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      summary: Create user profile
+      tags:
+      - User Profile
+  /user-profiles/{userId}:
+    get:
+      consumes:
+      - application/json
+      description: Get user profile
+      parameters:
+      - description: user id
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.userProfileResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      summary: Get user profile
+      tags:
+      - User Profile
+swagger: "2.0"
