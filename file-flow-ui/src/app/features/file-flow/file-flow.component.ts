@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiPrefix, ApiService } from 'src/app/core/services/api.service';
@@ -10,6 +10,8 @@ import { ApiPrefix, ApiService } from 'src/app/core/services/api.service';
   styleUrls: ['./file-flow.component.scss'],
 })
 export class FileFlowComponent {
+  @ViewChild('fileUpload') fileUploadEl!: ElementRef;
+
   private selectedFile!: File;
 
   emailRecipient = new FormControl('', [Validators.required, Validators.email]);
@@ -30,6 +32,7 @@ export class FileFlowComponent {
     this.emailRecipient.reset();
     this.fileName = '';
     this.selectedFile = undefined!;
+    this.fileUploadEl.nativeElement.value = '';
   }
 
   onSubmit() {
@@ -52,7 +55,7 @@ export class FileFlowComponent {
         this.onReset();
       },
       error: (err: HttpErrorResponse) => {
-        this.snackBar.open(err.message, 'OK');
+        this.snackBar.open(err.error.message);
       },
     });
   }
