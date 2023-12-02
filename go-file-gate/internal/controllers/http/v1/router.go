@@ -9,8 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	// // Swagger docs.
-	// _ "github.com/bgg/go-file-gate/docs"
+
+	// Swagger docs.
+	_ "github.com/bgg/go-file-gate/docs"
 )
 
 func NewRouter(handler *gin.Engine, l logger.Logger, u usecase.UserProfile) {
