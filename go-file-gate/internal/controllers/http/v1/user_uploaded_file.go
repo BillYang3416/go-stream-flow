@@ -31,6 +31,18 @@ type createUserUploadedFileRequest struct {
 	EmailRecipient string `form:"emailRecipient" example:"johndoe@email.com"  binding:"required,email"`
 }
 
+// create user uploaded file godoc
+//
+// @Summary		Create user uploaded file
+// @Description	Create user uploaded file
+// @Tags			User Uploaded File
+// @Accept			multipart/form-data
+// @Produce		json
+// @Param			emailRecipient	formData	string	true	"email recipient"
+// @Param			file			formData	file	true	"file"
+// @Success		204
+// @Failure		400						{object}	errorResponse
+// @Router			/user-uploaded-files [post]
 func (r *userUploadedFileRoutes) create(c *gin.Context) {
 	var request createUserUploadedFileRequest
 	if err := c.ShouldBind(&request); err != nil {
@@ -67,7 +79,7 @@ func (r *userUploadedFileRoutes) create(c *gin.Context) {
 	_, err = r.u.Create(c.Request.Context(),
 		entity.UserUploadedFile{
 			UserID:         userID,
-			EmailRecipient: request.emailRecipient,
+			EmailRecipient: request.EmailRecipient,
 			Name:           file.Filename,
 			Size:           file.Size,
 			Content:        fileContent,

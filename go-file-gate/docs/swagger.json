@@ -145,6 +145,48 @@
                     }
                 }
             }
+        },
+        "/user-uploaded-files": {
+            "post": {
+                "description": "Create user uploaded file",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Uploaded File"
+                ],
+                "summary": "Create user uploaded file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "email recipient",
+                        "name": "emailRecipient",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {

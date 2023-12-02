@@ -138,4 +138,32 @@ paths:
       summary: Get user profile
       tags:
       - User Profile
+  /user-uploaded-files:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create user uploaded file
+      parameters:
+      - description: email recipient
+        in: formData
+        name: emailRecipient
+        required: true
+        type: string
+      - description: file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      summary: Create user uploaded file
+      tags:
+      - User Uploaded File
 swagger: "2.0"
