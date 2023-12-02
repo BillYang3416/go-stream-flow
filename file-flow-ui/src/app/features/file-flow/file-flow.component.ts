@@ -53,9 +53,14 @@ export class FileFlowComponent {
     this.apiSvc.post(ApiPrefix.USER_UPLOADED_FILES, '', formData).subscribe({
       next: (_) => {
         this.onReset();
+        this.snackBar.open(
+          'File uploaded successfully and send email soon',
+          '',
+          { duration: 2000 }
+        );
       },
       error: (err: HttpErrorResponse) => {
-        this.snackBar.open(err.error.message);
+        this.snackBar.open(err.error.message, '', { duration: 2000 });
       },
     });
   }
