@@ -1,5 +1,7 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiPrefix, ApiService } from 'src/app/core/services/api.service';
 
 @Component({
@@ -14,7 +16,7 @@ export class FileFlowComponent {
 
   fileName = '';
 
-  constructor(private apiSvc: ApiService) {}
+  constructor(private apiSvc: ApiService, private snackBar: MatSnackBar) {}
 
   onFileSelected(event: any) {
     const file: File = event.target.files[0];
@@ -31,8 +33,13 @@ export class FileFlowComponent {
   }
 
   onSubmit() {
+    if (this.emailRecipient.invalid) {
+      this.snackBar.open('Please enter a valid email', 'OK');
+      return;
+    }
+
     if (!this.fileName) {
-      alert('Please select a file');
+      this.snackBar.open('Please select a file', 'OK');
       return;
     }
 
@@ -44,8 +51,8 @@ export class FileFlowComponent {
       next: (_) => {
         this.onReset();
       },
-      error: (err) => {
-        alert('Error uploading file' + err.message);
+      error: (err: HttpErrorResponse) => {
+        this.snackBar.open(err.message, 'OK');
       },
     });
   }
