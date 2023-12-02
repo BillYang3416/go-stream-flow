@@ -48,6 +48,7 @@ func CheckSessionMiddleware() gin.HandlerFunc {
 		userID, exists := session.Get("userID").(string)
 		if !exists || userID == "" {
 			sendErrorResponse(c, http.StatusUnauthorized, "unauthorized")
+			c.Abort()
 			return
 		}
 		c.Next()
