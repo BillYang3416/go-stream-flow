@@ -16,7 +16,7 @@ type userUploadedFileRoutes struct {
 	l logger.Logger
 }
 
-func newUserUploadedFileRoutes(handler *gin.RouterGroup, u usecase.UserUploadedFile, l logger.Logger) {
+func NewUserUploadedFileRoutes(handler *gin.RouterGroup, u usecase.UserUploadedFile, l logger.Logger) {
 
 	r := &userUploadedFileRoutes{u, l}
 

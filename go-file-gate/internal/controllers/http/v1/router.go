@@ -25,7 +25,7 @@ func NewRouter(cfg *config.Config, handler *gin.Engine, l logger.Logger, u useca
 	{
 		NewUserProfileRoutes(h, u, l)
 		NewAuthRoutes(cfg, h, u, l)
-		newUserUploadedFileRoutes(h, uu, l)
+		NewUserUploadedFileRoutes(h, uu, l)
 	}
 
 	// Swagger
