@@ -80,3 +80,54 @@ func TestCreateWithError(t *testing.T) {
 	assert.Equal(t, entity.UserProfile{}, result)
 	mockRepo.AssertExpectations(t)
 }
+
+func TestGetByID(t *testing.T) {
+	// Arrange
+	mockRepo := new(MockUserProfileRepo)
+	uc := NewUserProfileUseCase(mockRepo)
+	ctx := context.Background()
+
+	userProfile := entity.UserProfile{
+		UserID:       "U1234567890",
+		DisplayName:  "test",
+		PictureURL:   "https://example.com",
+		AccessToken:  "test",
+		RefreshToken: "test",
+	}
+
+	mockRepo.On("GetByID", ctx, userProfile.UserID).Return(userProfile, nil)
+
+	// Act
+	result, err := uc.GetByID(ctx, userProfile.UserID)
+
+	// Assert
+	assert.NoError(t, err)
+	assert.Equal(t, userProfile, result)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestGetByIDWithError(t *testing.T) {
+	// Arrange
+	mockRepo := new(MockUserProfileRepo)
+	uc := NewUserProfileUseCase(mockRepo)
+	ctx := context.Background()
+
+	userProfile := entity.UserProfile{
+		UserID:       "U1234567890",
+		DisplayName:  "test",
+		PictureURL:   "https://example.com",
+		AccessToken:  "test",
+		RefreshToken: "test",
+	}
+
+	expectedError := errors.New("failed to get user profile")
+	mockRepo.On("GetByID", ctx, userProfile.UserID).Return(entity.UserProfile{}, expectedError)
+
+	// Act
+	result, err := uc.GetByID(ctx, userProfile.UserID)
+
+	// Assert
+	assert.Error(t, err)
+	assert.Equal(t, entity.UserProfile{}, result)
+	mockRepo.AssertExpectations(t)
+}
