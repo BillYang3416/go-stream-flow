@@ -20,6 +20,12 @@ const (
 	_defaultConnTimeout  = time.Second
 )
 
+type PgxPoolIface interface {
+	Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error)
+	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
+	Close()
+}
+
 // Postgres -.
 type Postgres struct {
 	maxPoolSize  int
@@ -27,7 +33,7 @@ type Postgres struct {
 	connTimeout  time.Duration
 
 	Builder squirrel.StatementBuilderType
-	Pool    *pgxpool.Pool
+	Pool    PgxPoolIface
 }
 
 // New -.
