@@ -18,46 +18,45 @@ func (m *MockUserUploadedFileRepo) Create(ctx context.Context, u entity.UserUplo
 	return args.Error(0)
 }
 
-func TestCreateUserUplaodedFile(t *testing.T) {
-	// Arrange
-	mockRepo := new(MockUserUploadedFileRepo)
-	uc := NewUserUploadedFileUseCase(mockRepo)
-	ctx := context.Background()
-	userUploadedFile := entity.UserUploadedFile{
-		Name:    "test.txt",
-		Size:    100,
-		Content: []byte("test"),
-		UserID:  "123",
-	}
-	mockRepo.On("Create", ctx, userUploadedFile).Return(nil)
+func TestUserUploadedFileUseCase_Create(t *testing.T) {
+	t.Run("Create user uploaded file successfully", func(t *testing.T) {
+		// Arrange
+		mockRepo := new(MockUserUploadedFileRepo)
+		uc := NewUserUploadedFileUseCase(mockRepo)
+		ctx := context.Background()
+		userUploadedFile := entity.UserUploadedFile{
+			Name:    "test.txt",
+			Size:    100,
+			Content: []byte("test"),
+			UserID:  "123",
+		}
+		mockRepo.On("Create", ctx, userUploadedFile).Return(nil)
 
-	// Act
-	result, err := uc.Create(ctx, userUploadedFile)
+		// Act
+		result, err := uc.Create(ctx, userUploadedFile)
 
-	// Assert
-	assert.NoError(t, err)
-	assert.Equal(t, userUploadedFile, result)
-	mockRepo.AssertExpectations(t)
-}
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, userUploadedFile, result)
+		mockRepo.AssertExpectations(t)
+	})
 
-func TestCreateUserUplaodedFileWithError(t *testing.T) {
-	// Arrange
-	mockRepo := new(MockUserUploadedFileRepo)
-	uc := NewUserUploadedFileUseCase(mockRepo)
-	ctx := context.Background()
-	userUploadedFile := entity.UserUploadedFile{
-		Name:    "test.txt",
-		Size:    100,
-		Content: []byte("test"),
-		UserID:  "123",
-	}
-	mockRepo.On("Create", ctx, userUploadedFile).Return(assert.AnError)
+	t.Run("Create user uploaded file with empty file", func(t *testing.T) {
+		// Arrange
+		mockRepo := new(MockUserUploadedFileRepo)
+		uc := NewUserUploadedFileUseCase(mockRepo)
+		ctx := context.Background()
+		userUploadedFile := entity.UserUploadedFile{
+			UserID: "123",
+		}
+		mockRepo.On("Create", ctx, userUploadedFile).Return(assert.AnError)
 
-	// Act
-	result, err := uc.Create(ctx, userUploadedFile)
+		// Act
+		result, err := uc.Create(ctx, userUploadedFile)
 
-	// Assert
-	assert.Error(t, err)
-	assert.Equal(t, entity.UserUploadedFile{}, result)
-	mockRepo.AssertExpectations(t)
+		// Assert
+		assert.Error(t, err)
+		assert.Equal(t, entity.UserUploadedFile{}, result)
+		mockRepo.AssertExpectations(t)
+	})
 }
