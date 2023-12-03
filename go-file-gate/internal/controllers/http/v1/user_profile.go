@@ -32,7 +32,6 @@ type createUserProfileRequest struct {
 	UserID      string `json:"userId" example:"U1234567890abcdef1234567890abcdef" binding:"required"`
 	DisplayName string `json:"displayName" example:"John Doe" binding:"required"`
 	PictureURL  string `json:"pictureUrl" example:"https://example.com/picture.jpg" binding:"required,url"`
-	AccessToken string `json:"accessToken" example:"1234567890abcdef1234567890abcdef" binding:"required"`
 }
 
 type userProfileResponse struct {
@@ -71,7 +70,6 @@ func (r *userProfileRoutes) create(c *gin.Context) {
 			UserID:      request.UserID,
 			DisplayName: request.DisplayName,
 			PictureURL:  request.PictureURL,
-			AccessToken: request.AccessToken,
 		},
 	)
 
