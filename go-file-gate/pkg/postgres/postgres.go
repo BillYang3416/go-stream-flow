@@ -85,6 +85,12 @@ func (p *Postgres) Close() {
 	}
 }
 
+func (p *Postgres) Ping(ctx context.Context) error {
+	const query = "SELECT 1"
+	_, err := p.Pool.Exec(ctx, query)
+	return err
+}
+
 type PGErrorChecker interface {
 	IsUniqueViolation(err error) bool
 	IsNoRows(err error) bool
