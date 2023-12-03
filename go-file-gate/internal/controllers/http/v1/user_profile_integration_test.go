@@ -48,24 +48,50 @@ func TestUserProfileRoute_Create(t *testing.T) {
 
 	sessionCookie := setupSessions(t, router)
 
-	payload := map[string]interface{}{
-		"UserID":      "testuser",
-		"DisplayName": "Test User",
-		"PictureURL":  "https://test.com/test.jpg",
-	}
+	t.Run("create user profile successfully", func(t *testing.T) {
 
-	// create a actual request with session cookie
-	jsonPayload, _ := json.Marshal(payload)
-	req, _ := http.NewRequest("POST", "/api/v1/user-profiles/", bytes.NewBuffer(jsonPayload))
-	req.Header.Set("Content-Type", "application/json")
-	req.AddCookie(sessionCookie)
+		payload := map[string]interface{}{
+			"UserID":      "testuser",
+			"DisplayName": "Test User",
+			"PictureURL":  "https://test.com/test.jpg",
+		}
 
-	w := httptest.NewRecorder()
-	router.ServeHTTP(w, req)
+		// create a actual request with session cookie
+		jsonPayload, _ := json.Marshal(payload)
+		req, _ := http.NewRequest("POST", "/api/v1/user-profiles/", bytes.NewBuffer(jsonPayload))
+		req.Header.Set("Content-Type", "application/json")
+		req.AddCookie(sessionCookie)
 
-	if w.Code != http.StatusOK {
-		t.Errorf("expected status code %d, got %d", http.StatusOK, w.Code)
-	}
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Errorf("expected status code %d, got %d", http.StatusOK, w.Code)
+		}
+	})
+
+	t.Run("create user profile with invalid payload", func(t *testing.T) {
+
+		payload := map[string]interface{}{
+			"UserID":      "",
+			"DisplayName": "Test User",
+			"PictureURL":  "invalid-url",
+		}
+
+		// create a actual request with session cookie
+		jsonPayload, _ := json.Marshal(payload)
+		req, _ := http.NewRequest("POST", "/api/v1/user-profiles/", bytes.NewBuffer(jsonPayload))
+		req.Header.Set("Content-Type", "application/json")
+		req.AddCookie(sessionCookie)
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		if w.Code != http.StatusBadRequest {
+			t.Errorf("expected status code %d, got %d", http.StatusBadRequest, w.Code)
+		}
+	})
+
 }
 
 func TestUserProfileRoute_Get(t *testing.T) {
@@ -89,15 +115,32 @@ func TestUserProfileRoute_Get(t *testing.T) {
 
 	sessionCookie := setupSessions(t, router)
 
-	// create a actual request with session cookie
-	req, _ := http.NewRequest("GET", "/api/v1/user-profiles/testuser", nil)
-	req.Header.Set("Content-Type", "application/json")
-	req.AddCookie(sessionCookie)
+	t.Run("get user profile successfully", func(t *testing.T) {
+		// create a actual request with session cookie
+		req, _ := http.NewRequest("GET", "/api/v1/user-profiles/testuser", nil)
+		req.Header.Set("Content-Type", "application/json")
+		req.AddCookie(sessionCookie)
 
-	w := httptest.NewRecorder()
-	router.ServeHTTP(w, req)
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
 
-	if w.Code != http.StatusOK {
-		t.Errorf("expected status code %d, got %d", http.StatusOK, w.Code)
-	}
+		if w.Code != http.StatusOK {
+			t.Errorf("expected status code %d, got %d", http.StatusOK, w.Code)
+		}
+	})
+
+	t.Run("get user profile with invalid user id", func(t *testing.T) {
+		// create a actual request with session cookie
+		req, _ := http.NewRequest("GET", "/api/v1/user-profiles/invalid-user-id", nil)
+		req.Header.Set("Content-Type", "application/json")
+		req.AddCookie(sessionCookie)
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		if w.Code != http.StatusInternalServerError {
+			t.Errorf("expected status code %d, got %d", http.StatusNotFound, w.Code)
+		}
+	})
+
 }
