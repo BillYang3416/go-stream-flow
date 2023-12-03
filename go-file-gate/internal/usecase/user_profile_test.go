@@ -28,151 +28,138 @@ func (m *MockUserProfileRepo) UpdateRefreshToken(ctx context.Context, userId str
 	return args.Error(0)
 }
 
-func TestCreateUserProfile(t *testing.T) {
+func TestUserProfileUsecase_Create(t *testing.T) {
 
-	// Arrange
-	mockRepo := new(MockUserProfileRepo)
-	uc := NewUserProfileUseCase(mockRepo)
-	ctx := context.Background()
+	t.Run("Create user profile successfully", func(t *testing.T) {
+		// Arrange
+		mockRepo := new(MockUserProfileRepo)
+		uc := NewUserProfileUseCase(mockRepo)
+		ctx := context.Background()
 
-	userProfile := entity.UserProfile{
-		UserID:       "U1234567890",
-		DisplayName:  "test",
-		PictureURL:   "https://example.com",
-		AccessToken:  "test",
-		RefreshToken: "test",
-	}
+		userProfile := entity.UserProfile{
+			UserID:       "U1234567890",
+			DisplayName:  "test",
+			PictureURL:   "https://example.com",
+			AccessToken:  "test",
+			RefreshToken: "test",
+		}
 
-	mockRepo.On("Create", ctx, userProfile).Return(nil)
+		mockRepo.On("Create", ctx, userProfile).Return(nil)
 
-	// Act
-	result, err := uc.Create(ctx, userProfile)
+		// Act
+		result, err := uc.Create(ctx, userProfile)
 
-	// Assert
-	assert.NoError(t, err)
-	assert.Equal(t, userProfile, result)
-	mockRepo.AssertExpectations(t)
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, userProfile, result)
+		mockRepo.AssertExpectations(t)
+	})
+	t.Run("Create user profile with invalid input", func(t *testing.T) {
+		// Arrange
+		mockRepo := new(MockUserProfileRepo)
+		uc := NewUserProfileUseCase(mockRepo)
+		ctx := context.Background()
+
+		userProfile := entity.UserProfile{}
+
+		mockRepo.On("Create", ctx, userProfile).Return(assert.AnError)
+
+		// Act
+		result, err := uc.Create(ctx, userProfile)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Equal(t, entity.UserProfile{}, result)
+		mockRepo.AssertExpectations(t)
+	})
+
 }
 
-func TestCreateUserProfileWithError(t *testing.T) {
-	// Arrange
-	mockRepo := new(MockUserProfileRepo)
-	uc := NewUserProfileUseCase(mockRepo)
-	ctx := context.Background()
+func TestUserProfileUsecase_GetByID(t *testing.T) {
+	t.Run("Get user profile by id successfully", func(t *testing.T) {
+		// Arrange
+		mockRepo := new(MockUserProfileRepo)
+		uc := NewUserProfileUseCase(mockRepo)
+		ctx := context.Background()
 
-	userProfile := entity.UserProfile{
-		UserID:       "U1234567890",
-		DisplayName:  "test",
-		PictureURL:   "https://example.com",
-		AccessToken:  "test",
-		RefreshToken: "test",
-	}
+		userProfile := entity.UserProfile{
+			UserID:       "U1234567890",
+			DisplayName:  "test",
+			PictureURL:   "https://example.com",
+			AccessToken:  "test",
+			RefreshToken: "test",
+		}
 
-	mockRepo.On("Create", ctx, userProfile).Return(assert.AnError)
+		mockRepo.On("GetByID", ctx, userProfile.UserID).Return(userProfile, nil)
 
-	// Act
-	result, err := uc.Create(ctx, userProfile)
+		// Act
+		result, err := uc.GetByID(ctx, userProfile.UserID)
 
-	// Assert
-	assert.Error(t, err)
-	assert.Equal(t, entity.UserProfile{}, result)
-	mockRepo.AssertExpectations(t)
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, userProfile, result)
+		mockRepo.AssertExpectations(t)
+	})
+	t.Run("Get user profile by id with invalid user ID", func(t *testing.T) {
+		// Arrange
+		mockRepo := new(MockUserProfileRepo)
+		uc := NewUserProfileUseCase(mockRepo)
+		ctx := context.Background()
+
+		mockRepo.On("GetByID", ctx, "123").Return(entity.UserProfile{}, assert.AnError)
+
+		// Act
+		result, err := uc.GetByID(ctx, "123")
+
+		// Assert
+		assert.Error(t, err)
+		assert.Equal(t, entity.UserProfile{}, result)
+		mockRepo.AssertExpectations(t)
+	})
+
 }
 
-func TestGetUserProfileByID(t *testing.T) {
-	// Arrange
-	mockRepo := new(MockUserProfileRepo)
-	uc := NewUserProfileUseCase(mockRepo)
-	ctx := context.Background()
+func TestUserProfileUsecase_UpdateRefreshToken(t *testing.T) {
+	t.Run("Update refresh token of user profile successfully", func(t *testing.T) {
+		// Arrange
+		mockRepo := new(MockUserProfileRepo)
+		uc := NewUserProfileUseCase(mockRepo)
+		ctx := context.Background()
 
-	userProfile := entity.UserProfile{
-		UserID:       "U1234567890",
-		DisplayName:  "test",
-		PictureURL:   "https://example.com",
-		AccessToken:  "test",
-		RefreshToken: "test",
-	}
+		userProfile := entity.UserProfile{
+			UserID:       "U1234567890",
+			DisplayName:  "test",
+			PictureURL:   "https://example.com",
+			AccessToken:  "test",
+			RefreshToken: "test",
+		}
 
-	mockRepo.On("GetByID", ctx, userProfile.UserID).Return(userProfile, nil)
+		mockRepo.On("UpdateRefreshToken", ctx, userProfile.UserID, userProfile.RefreshToken).Return(nil)
 
-	// Act
-	result, err := uc.GetByID(ctx, userProfile.UserID)
+		// Act
+		err := uc.UpdateRefreshToken(ctx, userProfile.UserID, userProfile.RefreshToken)
 
-	// Assert
-	assert.NoError(t, err)
-	assert.Equal(t, userProfile, result)
-	mockRepo.AssertExpectations(t)
-}
+		// Assert
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
+	t.Run("Update refresh token of user profile which does not existed", func(t *testing.T) {
+		// Arrange
+		mockRepo := new(MockUserProfileRepo)
+		uc := NewUserProfileUseCase(mockRepo)
+		ctx := context.Background()
 
-func TestGetUserProfileByIDWithError(t *testing.T) {
-	// Arrange
-	mockRepo := new(MockUserProfileRepo)
-	uc := NewUserProfileUseCase(mockRepo)
-	ctx := context.Background()
+		userID := "U1234567890"
+		refreshToken := "test"
 
-	userProfile := entity.UserProfile{
-		UserID:       "U1234567890",
-		DisplayName:  "test",
-		PictureURL:   "https://example.com",
-		AccessToken:  "test",
-		RefreshToken: "test",
-	}
+		mockRepo.On("UpdateRefreshToken", ctx, userID, refreshToken).Return(assert.AnError)
 
-	mockRepo.On("GetByID", ctx, userProfile.UserID).Return(entity.UserProfile{}, assert.AnError)
+		// Act
+		err := uc.UpdateRefreshToken(ctx, userID, refreshToken)
 
-	// Act
-	result, err := uc.GetByID(ctx, userProfile.UserID)
+		// Assert
+		assert.Error(t, err)
+		mockRepo.AssertExpectations(t)
+	})
 
-	// Assert
-	assert.Error(t, err)
-	assert.Equal(t, entity.UserProfile{}, result)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestUpdateRefreshTokenOfUserProfile(t *testing.T) {
-	// Arrange
-	mockRepo := new(MockUserProfileRepo)
-	uc := NewUserProfileUseCase(mockRepo)
-	ctx := context.Background()
-
-	userProfile := entity.UserProfile{
-		UserID:       "U1234567890",
-		DisplayName:  "test",
-		PictureURL:   "https://example.com",
-		AccessToken:  "test",
-		RefreshToken: "test",
-	}
-
-	mockRepo.On("UpdateRefreshToken", ctx, userProfile.UserID, userProfile.RefreshToken).Return(nil)
-
-	// Act
-	err := uc.UpdateRefreshToken(ctx, userProfile.UserID, userProfile.RefreshToken)
-
-	// Assert
-	assert.NoError(t, err)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestUpdateRefreshTokenOfUserProfileWithError(t *testing.T) {
-	// Arrange
-	mockRepo := new(MockUserProfileRepo)
-	uc := NewUserProfileUseCase(mockRepo)
-	ctx := context.Background()
-
-	userProfile := entity.UserProfile{
-		UserID:       "U1234567890",
-		DisplayName:  "test",
-		PictureURL:   "https://example.com",
-		AccessToken:  "test",
-		RefreshToken: "test",
-	}
-
-	mockRepo.On("UpdateRefreshToken", ctx, userProfile.UserID, userProfile.RefreshToken).Return(assert.AnError)
-
-	// Act
-	err := uc.UpdateRefreshToken(ctx, userProfile.UserID, userProfile.RefreshToken)
-
-	// Assert
-	assert.Error(t, err)
-	mockRepo.AssertExpectations(t)
 }
