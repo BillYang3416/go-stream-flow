@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"github.com/bgg/go-file-gate/internal/entity"
@@ -69,8 +68,7 @@ func TestCreateUserProfileWithError(t *testing.T) {
 		RefreshToken: "test",
 	}
 
-	expectedError := errors.New("failed to create user profile")
-	mockRepo.On("Create", ctx, userProfile).Return(expectedError)
+	mockRepo.On("Create", ctx, userProfile).Return(assert.AnError)
 
 	// Act
 	result, err := uc.Create(ctx, userProfile)
@@ -120,8 +118,7 @@ func TestGetUserProfileByIDWithError(t *testing.T) {
 		RefreshToken: "test",
 	}
 
-	expectedError := errors.New("failed to get user profile")
-	mockRepo.On("GetByID", ctx, userProfile.UserID).Return(entity.UserProfile{}, expectedError)
+	mockRepo.On("GetByID", ctx, userProfile.UserID).Return(entity.UserProfile{}, assert.AnError)
 
 	// Act
 	result, err := uc.GetByID(ctx, userProfile.UserID)
@@ -170,8 +167,7 @@ func TestUpdateRefreshTokenOfUserProfileWithError(t *testing.T) {
 		RefreshToken: "test",
 	}
 
-	expectedError := errors.New("failed to update refresh token")
-	mockRepo.On("UpdateRefreshToken", ctx, userProfile.UserID, userProfile.RefreshToken).Return(expectedError)
+	mockRepo.On("UpdateRefreshToken", ctx, userProfile.UserID, userProfile.RefreshToken).Return(assert.AnError)
 
 	// Act
 	err := uc.UpdateRefreshToken(ctx, userProfile.UserID, userProfile.RefreshToken)
