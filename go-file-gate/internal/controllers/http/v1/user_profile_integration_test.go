@@ -10,12 +10,13 @@ import (
 
 	"github.com/bgg/go-file-gate/internal/usecase"
 	"github.com/bgg/go-file-gate/internal/usecase/repo"
+	"github.com/bgg/go-file-gate/pkg/postgres"
 )
 
-func TestUserProfileRoute_Create(t *testing.T) {
+func setupUserProfilesTable(t *testing.T) (*postgres.Postgres, func()) {
+	t.Helper()
 
 	pg, dbTeardown := setupDatabase(t)
-	defer dbTeardown()
 
 	createTableSQL := `CREATE TABLE user_profiles (
 		user_id VARCHAR(255) PRIMARY KEY,
@@ -28,6 +29,14 @@ func TestUserProfileRoute_Create(t *testing.T) {
 	if _, err := pg.Pool.Exec(context.Background(), createTableSQL); err != nil {
 		t.Fatalf("could not create user_profiles table: %s", err)
 	}
+
+	return pg, dbTeardown
+}
+
+func TestUserProfileRoute_Create(t *testing.T) {
+
+	pg, dbTeardown := setupUserProfilesTable(t)
+	defer dbTeardown()
 
 	userProfileUseCase := usecase.NewUserProfileUseCase(repo.NewUserProfileRepo(pg))
 
@@ -48,6 +57,40 @@ func TestUserProfileRoute_Create(t *testing.T) {
 	// create a actual request with session cookie
 	jsonPayload, _ := json.Marshal(payload)
 	req, _ := http.NewRequest("POST", "/api/v1/user-profiles/", bytes.NewBuffer(jsonPayload))
+	req.Header.Set("Content-Type", "application/json")
+	req.AddCookie(sessionCookie)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected status code %d, got %d", http.StatusOK, w.Code)
+	}
+}
+
+func TestUserProfileRoute_Get(t *testing.T) {
+
+	pg, dbTeardown := setupUserProfilesTable(t)
+	defer dbTeardown()
+
+	// insert test data
+	_, err := pg.Pool.Exec(context.Background(), `INSERT INTO user_profiles (user_id, display_name, picture_url, access_token, refresh_token) VALUES ('testuser', 'Test User', 'https://test.com/test.jpg', 'test-access-token', 'test-refresh-token');`)
+	if err != nil {
+		t.Fatalf("could not insert test data: %s", err)
+	}
+
+	userProfileUseCase := usecase.NewUserProfileUseCase(repo.NewUserProfileRepo(pg))
+
+	router, redisTeardown := setupRouter(t)
+	defer redisTeardown()
+	l := setupLogger(t)
+
+	NewUserProfileRoutes(router.Group("/api/v1"), userProfileUseCase, l)
+
+	sessionCookie := setupSessions(t, router)
+
+	// create a actual request with session cookie
+	req, _ := http.NewRequest("GET", "/api/v1/user-profiles/testuser", nil)
 	req.Header.Set("Content-Type", "application/json")
 	req.AddCookie(sessionCookie)
 
