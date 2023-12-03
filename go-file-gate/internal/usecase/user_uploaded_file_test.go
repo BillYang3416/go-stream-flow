@@ -1,0 +1,63 @@
+package usecase
+
+import (
+	"context"
+	"testing"
+
+	"github.com/bgg/go-file-gate/internal/entity"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+)
+
+type MockUserUploadedFileRepo struct {
+	mock.Mock
+}
+
+func (m *MockUserUploadedFileRepo) Create(ctx context.Context, u entity.UserUploadedFile) error {
+	args := m.Called(ctx, u)
+	return args.Error(0)
+}
+
+func TestCreateUserUplaodedFile(t *testing.T) {
+	// Arrange
+	mockRepo := new(MockUserUploadedFileRepo)
+	uc := NewUserUploadedFileUseCase(mockRepo)
+	ctx := context.Background()
+	userUploadedFile := entity.UserUploadedFile{
+		Name:    "test.txt",
+		Size:    100,
+		Content: []byte("test"),
+		UserID:  "123",
+	}
+	mockRepo.On("Create", ctx, userUploadedFile).Return(nil)
+
+	// Act
+	result, err := uc.Create(ctx, userUploadedFile)
+
+	// Assert
+	assert.NoError(t, err)
+	assert.Equal(t, userUploadedFile, result)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCreateUserUplaodedFileWithError(t *testing.T) {
+	// Arrange
+	mockRepo := new(MockUserUploadedFileRepo)
+	uc := NewUserUploadedFileUseCase(mockRepo)
+	ctx := context.Background()
+	userUploadedFile := entity.UserUploadedFile{
+		Name:    "test.txt",
+		Size:    100,
+		Content: []byte("test"),
+		UserID:  "123",
+	}
+	mockRepo.On("Create", ctx, userUploadedFile).Return(assert.AnError)
+
+	// Act
+	result, err := uc.Create(ctx, userUploadedFile)
+
+	// Assert
+	assert.Error(t, err)
+	assert.Equal(t, entity.UserUploadedFile{}, result)
+	mockRepo.AssertExpectations(t)
+}
