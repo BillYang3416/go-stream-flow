@@ -29,7 +29,7 @@ func (m *MockUserProfileRepo) UpdateRefreshToken(ctx context.Context, userId str
 	return args.Error(0)
 }
 
-func TestCreate(t *testing.T) {
+func TestCreateUserProfile(t *testing.T) {
 
 	// Arrange
 	mockRepo := new(MockUserProfileRepo)
@@ -55,7 +55,7 @@ func TestCreate(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestCreateWithError(t *testing.T) {
+func TestCreateUserProfileWithError(t *testing.T) {
 	// Arrange
 	mockRepo := new(MockUserProfileRepo)
 	uc := NewUserProfileUseCase(mockRepo)
@@ -81,7 +81,7 @@ func TestCreateWithError(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestGetByID(t *testing.T) {
+func TestGetUserProfileByID(t *testing.T) {
 	// Arrange
 	mockRepo := new(MockUserProfileRepo)
 	uc := NewUserProfileUseCase(mockRepo)
@@ -106,7 +106,7 @@ func TestGetByID(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestGetByIDWithError(t *testing.T) {
+func TestGetUserProfileByIDWithError(t *testing.T) {
 	// Arrange
 	mockRepo := new(MockUserProfileRepo)
 	uc := NewUserProfileUseCase(mockRepo)
@@ -132,7 +132,7 @@ func TestGetByIDWithError(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestUpdateRefreshToken(t *testing.T) {
+func TestUpdateRefreshTokenOfUserProfile(t *testing.T) {
 	// Arrange
 	mockRepo := new(MockUserProfileRepo)
 	uc := NewUserProfileUseCase(mockRepo)
@@ -156,7 +156,7 @@ func TestUpdateRefreshToken(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestUpdateRefreshTokenWithError(t *testing.T) {
+func TestUpdateRefreshTokenOfUserProfileWithError(t *testing.T) {
 	// Arrange
 	mockRepo := new(MockUserProfileRepo)
 	uc := NewUserProfileUseCase(mockRepo)
