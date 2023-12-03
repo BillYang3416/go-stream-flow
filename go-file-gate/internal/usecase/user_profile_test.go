@@ -131,3 +131,52 @@ func TestGetByIDWithError(t *testing.T) {
 	assert.Equal(t, entity.UserProfile{}, result)
 	mockRepo.AssertExpectations(t)
 }
+
+func TestUpdateRefreshToken(t *testing.T) {
+	// Arrange
+	mockRepo := new(MockUserProfileRepo)
+	uc := NewUserProfileUseCase(mockRepo)
+	ctx := context.Background()
+
+	userProfile := entity.UserProfile{
+		UserID:       "U1234567890",
+		DisplayName:  "test",
+		PictureURL:   "https://example.com",
+		AccessToken:  "test",
+		RefreshToken: "test",
+	}
+
+	mockRepo.On("UpdateRefreshToken", ctx, userProfile.UserID, userProfile.RefreshToken).Return(nil)
+
+	// Act
+	err := uc.UpdateRefreshToken(ctx, userProfile.UserID, userProfile.RefreshToken)
+
+	// Assert
+	assert.NoError(t, err)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestUpdateRefreshTokenWithError(t *testing.T) {
+	// Arrange
+	mockRepo := new(MockUserProfileRepo)
+	uc := NewUserProfileUseCase(mockRepo)
+	ctx := context.Background()
+
+	userProfile := entity.UserProfile{
+		UserID:       "U1234567890",
+		DisplayName:  "test",
+		PictureURL:   "https://example.com",
+		AccessToken:  "test",
+		RefreshToken: "test",
+	}
+
+	expectedError := errors.New("failed to update refresh token")
+	mockRepo.On("UpdateRefreshToken", ctx, userProfile.UserID, userProfile.RefreshToken).Return(expectedError)
+
+	// Act
+	err := uc.UpdateRefreshToken(ctx, userProfile.UserID, userProfile.RefreshToken)
+
+	// Assert
+	assert.Error(t, err)
+	mockRepo.AssertExpectations(t)
+}
