@@ -2,9 +2,6 @@ basePath: /api/v1
 definitions:
   v1.createUserProfileRequest:
     properties:
-      accessToken:
-        example: 1234567890abcdef1234567890abcdef
-        type: string
       displayName:
         example: John Doe
         type: string
@@ -15,7 +12,6 @@ definitions:
         example: U1234567890abcdef1234567890abcdef
         type: string
     required:
-    - accessToken
     - displayName
     - pictureUrl
     - userId

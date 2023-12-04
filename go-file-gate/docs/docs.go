@@ -200,16 +200,11 @@ const docTemplate = `{
         "v1.createUserProfileRequest": {
             "type": "object",
             "required": [
-                "accessToken",
                 "displayName",
                 "pictureUrl",
                 "userId"
             ],
             "properties": {
-                "accessToken": {
-                    "type": "string",
-                    "example": "1234567890abcdef1234567890abcdef"
-                },
                 "displayName": {
                     "type": "string",
                     "example": "John Doe"
