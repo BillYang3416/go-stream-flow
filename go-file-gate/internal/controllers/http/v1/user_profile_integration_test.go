@@ -8,8 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/bgg/go-file-gate/internal/infra/repo"
 	"github.com/bgg/go-file-gate/internal/usecase"
-	"github.com/bgg/go-file-gate/internal/usecase/repo"
 	"github.com/bgg/go-file-gate/pkg/postgres"
 )
 

@@ -7,8 +7,8 @@ import (
 
 	"github.com/bgg/go-file-gate/config"
 	v1 "github.com/bgg/go-file-gate/internal/controllers/http/v1"
+	"github.com/bgg/go-file-gate/internal/infra/repo"
 	"github.com/bgg/go-file-gate/internal/usecase"
-	"github.com/bgg/go-file-gate/internal/usecase/repo"
 	"github.com/bgg/go-file-gate/pkg/logger"
 	"github.com/bgg/go-file-gate/pkg/postgres"
 	"github.com/gin-contrib/sessions"
