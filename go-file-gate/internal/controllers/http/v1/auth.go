@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"github.com/bgg/go-file-gate/config"
+	"github.com/bgg/go-file-gate/internal/controllers/http/v1/token"
 	"github.com/bgg/go-file-gate/internal/entity"
-	"github.com/bgg/go-file-gate/internal/token"
 	"github.com/bgg/go-file-gate/internal/usecase"
 	"github.com/bgg/go-file-gate/internal/usecase/repo"
 	"github.com/bgg/go-file-gate/pkg/logger"
