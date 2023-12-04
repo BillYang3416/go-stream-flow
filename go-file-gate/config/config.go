@@ -13,6 +13,7 @@ type Config struct {
 	Postgres PostgresConfig `yaml:"postgres"`
 	Log      LogConfig      `yaml:"log"`
 	Redis    RedisConfig    `yaml:"redis"`
+	RabbitMQ RabbitMQConfig `yaml:"rabbitmq"`
 }
 
 // AppConfig holds general application configurations
@@ -42,6 +43,13 @@ type RedisConfig struct {
 	Host     string `yaml:"host" env-default:"localhost"`
 	Port     string `yaml:"port" env-default:"6379"`
 	Password string `yaml:"password" env:"REDIS_PASSWORD" env-default:""`
+}
+
+type RabbitMQConfig struct {
+	Host     string `yaml:"host" env-default:"localhost"`
+	Port     string `yaml:"port" env-default:"5672"`
+	Username string `yaml:"username" env-default:"guest"`
+	Password string `yaml:"password" env-default:"guest"`
 }
 
 // NewConfig reads application configuration and returns it

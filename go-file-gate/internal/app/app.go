@@ -14,6 +14,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 func Run(cfg *config.Config) {
@@ -34,6 +35,18 @@ func Run(cfg *config.Config) {
 		l.Fatal(fmt.Errorf("app - Run - redis.NewStore: %w", err))
 	}
 	handler.Use(sessions.Sessions("user-auth", store))
+
+	// RabbitMQ
+	url := fmt.Sprintf("amqp://%s:%s@%s:%s/",
+		cfg.RabbitMQ.Username,
+		cfg.RabbitMQ.Password,
+		cfg.RabbitMQ.Host,
+		cfg.RabbitMQ.Port)
+	conn, err := amqp.Dial(url)
+	if err != nil {
+		l.Fatal(fmt.Errorf("app - Run - amqp.Dial: %w", err))
+	}
+	defer conn.Close()
 
 	// Use case
 	userProfileUseCase := usecase.NewUserProfileUseCase(

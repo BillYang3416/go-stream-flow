@@ -12,6 +12,7 @@ require (
 	github.com/jackc/pgx/v5 v5.5.0
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/pashagolub/pgxmock/v3 v3.2.0
+	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/rs/zerolog v1.31.0
 	github.com/stretchr/testify v1.8.4
 	github.com/swaggo/files v1.0.1
