@@ -47,6 +47,11 @@ func Run(cfg *config.Config) {
 		l.Fatal(fmt.Errorf("app - Run - amqp.Dial: %w", err))
 	}
 	defer conn.Close()
+	ch, err := conn.Channel()
+	if err != nil {
+		l.Fatal(fmt.Errorf("app - Run - conn.Channel: %w", err))
+	}
+	defer ch.Close()
 
 	// Use case
 	userProfileUseCase := usecase.NewUserProfileUseCase(
