@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/bgg/go-file-gate/config"
-	v1 "github.com/bgg/go-file-gate/internal/controllers/http/v1"
+	v1 "github.com/bgg/go-file-gate/internal/adapter/rest/v1"
 	"github.com/bgg/go-file-gate/internal/infra/messaging/rabbitmq"
 	"github.com/bgg/go-file-gate/internal/infra/repo"
 	"github.com/bgg/go-file-gate/internal/usecase"

@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/bgg/go-file-gate/config"
-	"github.com/bgg/go-file-gate/internal/controllers/http/v1/token"
+	"github.com/bgg/go-file-gate/internal/adapter/rest/token"
 	"github.com/bgg/go-file-gate/internal/entity"
 	"github.com/bgg/go-file-gate/internal/infra/repo"
 	"github.com/bgg/go-file-gate/internal/usecase"
