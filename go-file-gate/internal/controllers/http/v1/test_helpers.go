@@ -16,6 +16,7 @@ import (
 	redigo "github.com/gomodule/redigo/redis"
 
 	"github.com/ory/dockertest/v3"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 func setupDatabase(t *testing.T) (*postgres.Postgres, func()) {
@@ -147,4 +148,44 @@ func setupSessions(t *testing.T, router *gin.Engine) *http.Cookie {
 	}
 
 	return sessionCookie
+}
+
+func setupRabbitMQ(t *testing.T) (*amqp.Channel, func()) {
+	t.Helper()
+
+	pool, err := dockertest.NewPool("")
+	if err != nil {
+		t.Fatalf("could not connect to docker: %s", err)
+	}
+
+	resource, err := pool.RunWithOptions(&dockertest.RunOptions{
+		Repository: "rabbitmq",
+		Tag:        "3.8.9-alpine",
+		Env:        []string{"RABBITMQ_DEFAULT_USER=guest", "RABBITMQ_DEFAULT_PASS=guest"},
+	})
+
+	if err != nil {
+		t.Fatalf("could not start resource: %s", err)
+	}
+
+	var conn *amqp.Connection
+	if err = pool.Retry(func() error {
+		conn, err = amqp.Dial(fmt.Sprintf("amqp://guest:guest@localhost:%s/", resource.GetPort("5672/tcp")))
+		if err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		t.Fatalf("could not connect to dockerized rabbitmq: %s", err)
+	}
+	ch, err := conn.Channel()
+	if err != nil {
+		t.Fatalf("could not create channel: %s", err)
+	}
+
+	return ch, func() {
+		ch.Close()
+		conn.Close()
+		pool.Purge(resource)
+	}
 }

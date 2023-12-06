@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/bgg/go-file-gate/internal/infra/messaging/rabbitmq"
 	"github.com/bgg/go-file-gate/internal/infra/repo"
 	"github.com/bgg/go-file-gate/internal/usecase"
 	"github.com/bgg/go-file-gate/pkg/postgres"
@@ -50,7 +51,10 @@ func TestUserUploadedFileRoute_Create(t *testing.T) {
 	pg, dbTeardown := setupUserUploadedFilesTable(t)
 	defer dbTeardown()
 
-	userUploadedFileUseCase := usecase.NewUserUploadedFileUseCase(repo.NewUserUploadedFileRepo(pg))
+	ch, rabbitMQTeardown := setupRabbitMQ(t)
+	defer rabbitMQTeardown()
+
+	userUploadedFileUseCase := usecase.NewUserUploadedFileUseCase(repo.NewUserUploadedFileRepo(pg), rabbitmq.NewUserUploadedFilePublisher(ch))
 
 	router, redisTeardown := setupRouter(t)
 	defer redisTeardown()
