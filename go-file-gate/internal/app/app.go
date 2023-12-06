@@ -7,6 +7,7 @@ import (
 
 	"github.com/bgg/go-file-gate/config"
 	v1 "github.com/bgg/go-file-gate/internal/controllers/http/v1"
+	"github.com/bgg/go-file-gate/internal/infra/messaging/rabbitmq"
 	"github.com/bgg/go-file-gate/internal/infra/repo"
 	"github.com/bgg/go-file-gate/internal/usecase"
 	"github.com/bgg/go-file-gate/pkg/logger"
@@ -59,6 +60,7 @@ func Run(cfg *config.Config) {
 	)
 	userUploadedFileCase := usecase.NewUserUploadedFileUseCase(
 		repo.NewUserUploadedFileRepo(pg),
+		rabbitmq.NewUserUploadedFilePublisher(ch),
 	)
 
 	// HTTP Server

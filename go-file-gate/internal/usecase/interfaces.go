@@ -25,3 +25,7 @@ type UserUploadedFile interface {
 type UserUploadedFileRepo interface {
 	Create(context.Context, entity.UserUploadedFile) error
 }
+
+type UserUploadedFilePublisher interface {
+	Publish(context.Context, entity.UserUploadedFile) error
+}

@@ -9,6 +9,10 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+type MockUserUploadedFilePublisher struct {
+	mock.Mock
+}
+
 type MockUserUploadedFileRepo struct {
 	mock.Mock
 }
@@ -18,11 +22,17 @@ func (m *MockUserUploadedFileRepo) Create(ctx context.Context, u entity.UserUplo
 	return args.Error(0)
 }
 
+func (m *MockUserUploadedFilePublisher) Publish(ctx context.Context, file entity.UserUploadedFile) error {
+	args := m.Called(ctx, file)
+	return args.Error(0)
+}
+
 func TestUserUploadedFileUseCase_Create(t *testing.T) {
 	t.Run("Create user uploaded file successfully", func(t *testing.T) {
 		// Arrange
 		mockRepo := new(MockUserUploadedFileRepo)
-		uc := NewUserUploadedFileUseCase(mockRepo)
+		mockPub := new(MockUserUploadedFilePublisher)
+		uc := NewUserUploadedFileUseCase(mockRepo, mockPub)
 		ctx := context.Background()
 		userUploadedFile := entity.UserUploadedFile{
 			Name:    "test.txt",
@@ -31,6 +41,7 @@ func TestUserUploadedFileUseCase_Create(t *testing.T) {
 			UserID:  "123",
 		}
 		mockRepo.On("Create", ctx, userUploadedFile).Return(nil)
+		mockPub.On("Publish", ctx, userUploadedFile).Return(nil)
 
 		// Act
 		result, err := uc.Create(ctx, userUploadedFile)
@@ -44,7 +55,8 @@ func TestUserUploadedFileUseCase_Create(t *testing.T) {
 	t.Run("Create user uploaded file with empty file", func(t *testing.T) {
 		// Arrange
 		mockRepo := new(MockUserUploadedFileRepo)
-		uc := NewUserUploadedFileUseCase(mockRepo)
+		mockPub := new(MockUserUploadedFilePublisher)
+		uc := NewUserUploadedFileUseCase(mockRepo, mockPub)
 		ctx := context.Background()
 		userUploadedFile := entity.UserUploadedFile{
 			UserID: "123",
@@ -59,4 +71,5 @@ func TestUserUploadedFileUseCase_Create(t *testing.T) {
 		assert.Equal(t, entity.UserUploadedFile{}, result)
 		mockRepo.AssertExpectations(t)
 	})
+
 }
