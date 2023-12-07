@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/bgg/go-file-gate/config"
+	"github.com/bgg/go-file-gate/internal/adapter/event"
 	v1 "github.com/bgg/go-file-gate/internal/adapter/rest/v1"
 	"github.com/bgg/go-file-gate/internal/infra/messaging/rabbitmq"
 	"github.com/bgg/go-file-gate/internal/infra/repo"
@@ -53,6 +54,9 @@ func Run(cfg *config.Config) {
 		l.Fatal(fmt.Errorf("app - Run - conn.Channel: %w", err))
 	}
 	defer ch.Close()
+	// Consumer
+	cs := event.NewUserUploadedFileConsumer(ch, l)
+	go cs.StartConsume()
 
 	// Use case
 	userProfileUseCase := usecase.NewUserProfileUseCase(
