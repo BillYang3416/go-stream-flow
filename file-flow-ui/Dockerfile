@@ -13,7 +13,7 @@ COPY . .
 RUN npm install
 
 # Generate the build of the applicaion
-RUN npm run build
+RUN npm run build-dev
 
 # Stage 2: Serve app with nginx server
 
