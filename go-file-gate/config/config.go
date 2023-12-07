@@ -13,7 +13,7 @@ type Config struct {
 	Postgres PostgresConfig `yaml:"postgres"`
 	Log      LogConfig      `yaml:"log"`
 	Redis    RedisConfig    `yaml:"redis"`
-	RabbitMQ RabbitMQConfig `yaml:"rabbitmq"`
+	RabbitMQ RabbitMQConfig `yaml:"rabbit_mq"`
 }
 
 // AppConfig holds general application configurations
