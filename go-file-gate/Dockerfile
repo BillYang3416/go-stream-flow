@@ -11,9 +11,6 @@ FROM debian:buster-slim
 # Copy the go-file-gate-app binary
 COPY --from=build /app/cmd/go-file-gate/go-file-gate-app /go-file-gate-app
 
-# Copy the static files
-COPY --from=build /app/internal/static /internal/static
-
 # Copy the configuration file
 COPY --from=build /app/config/config.dev.yml /config/config.dev.yml
 

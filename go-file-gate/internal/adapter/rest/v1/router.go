@@ -31,16 +31,6 @@ func NewRouter(cfg *config.Config, handler *gin.Engine, l logger.Logger, u useca
 	// Swagger
 	swaggerHandler := ginSwagger.DisablingWrapHandler(swaggerFiles.Handler, "DISABLE_SWAGGER_HTTP_HANDLER")
 	handler.GET("/swagger/*any", swaggerHandler)
-
-	// Serve static files
-	// handler.StaticFS("/static", gin.Dir("/internal/static", false)) for docker
-	handler.StaticFS("/static", gin.Dir("../../internal/static", false))
-
-	// Handle SPA client-side routing
-	handler.NoRoute(func(c *gin.Context) {
-		// c.File("/internal/static/index.html") for docker
-		c.File("../../internal/static/index.html")
-	})
 }
 
 func CheckSessionMiddleware() gin.HandlerFunc {
