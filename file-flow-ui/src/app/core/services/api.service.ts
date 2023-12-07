@@ -7,7 +7,7 @@ import {
 } from '@angular/common/http';
 import { throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { environment } from 'src/enviroments/environment.dev';
+import { environment } from 'src/environments/environment.dev';
 
 @Injectable({
   providedIn: 'root',
