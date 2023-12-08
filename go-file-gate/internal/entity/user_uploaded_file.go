@@ -8,6 +8,7 @@ type UserUploadedFile struct {
 	Name           string     `json:"name"`
 	Size           int64      `json:"size"`
 	Content        []byte     `json:"-"`
+	Base64Content  string     `json:"content,omitempty"`
 	UserID         string     `json:"userId"`
 	CreatedAt      time.Time  `json:"createdAt"`
 	EmailSent      bool       `json:"emailSent"`      // Indicates if the email was sent successfully

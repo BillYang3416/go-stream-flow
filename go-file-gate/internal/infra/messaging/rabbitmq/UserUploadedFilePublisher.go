@@ -2,6 +2,7 @@ package rabbitmq
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 
 	"github.com/bgg/go-file-gate/internal/entity"
@@ -16,8 +17,8 @@ type UserUploadedFilePublisher struct {
 	routingKey string
 }
 
-func NewUserUploadedFilePublisher(ch *amqp.Channel) *UserUploadedFilePublisher {
-	pub := &UserUploadedFilePublisher{ch: ch, exchange: "user-uploaded-file", routingKey: "user-uploaded-file.event.created"}
+func NewUserUploadedFilePublisher(l logger.Logger, ch *amqp.Channel) *UserUploadedFilePublisher {
+	pub := &UserUploadedFilePublisher{l: l, ch: ch, exchange: "user-uploaded-file", routingKey: "user-uploaded-file.event.created"}
 
 	// declare exchange
 	err := ch.ExchangeDeclare(
@@ -64,6 +65,7 @@ func NewUserUploadedFilePublisher(ch *amqp.Channel) *UserUploadedFilePublisher {
 
 func (pub *UserUploadedFilePublisher) Publish(ctx context.Context, file entity.UserUploadedFile) error {
 
+	file.Base64Content = base64.StdEncoding.EncodeToString(file.Content)
 	body, err := json.Marshal(file)
 	if err != nil {
 		pub.l.Error(err, "failed to marshal file")

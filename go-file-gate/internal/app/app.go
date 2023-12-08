@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/bgg/go-file-gate/config"
 	"github.com/bgg/go-file-gate/internal/adapter/event"
 	v1 "github.com/bgg/go-file-gate/internal/adapter/rest/v1"
+	"github.com/bgg/go-file-gate/internal/infra/email"
 	"github.com/bgg/go-file-gate/internal/infra/messaging/rabbitmq"
 	"github.com/bgg/go-file-gate/internal/infra/repo"
 	"github.com/bgg/go-file-gate/internal/usecase"
@@ -17,6 +19,7 @@ import (
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
 	amqp "github.com/rabbitmq/amqp091-go"
+	mail "github.com/xhit/go-simple-mail/v2"
 )
 
 func Run(cfg *config.Config) {
@@ -38,6 +41,24 @@ func Run(cfg *config.Config) {
 	}
 	handler.Use(sessions.Sessions("user-auth", store))
 
+	mailHogPort, err := strconv.Atoi(cfg.MailHog.Port)
+	if err != nil {
+		l.Fatal(fmt.Errorf("app - Run - strconv.Atoi: %w", err))
+	}
+	// SMTP Client
+	server := mail.NewSMTPClient()
+	server.Host = cfg.MailHog.Host
+	server.Port = mailHogPort
+	server.Username = ""
+	server.Password = ""
+	server.Encryption = mail.EncryptionNone
+
+	smtpClient, err := server.Connect()
+	if err != nil {
+		l.Fatal(fmt.Errorf("app - Run - server.Connect: %w", err))
+	}
+	defer smtpClient.Close()
+
 	// RabbitMQ
 	url := fmt.Sprintf("amqp://%s:%s@%s:%s/",
 		cfg.RabbitMQ.Username,
@@ -54,17 +75,19 @@ func Run(cfg *config.Config) {
 		l.Fatal(fmt.Errorf("app - Run - conn.Channel: %w", err))
 	}
 	defer ch.Close()
+
+	userUploadedFileCase := usecase.NewUserUploadedFileUseCase(
+		repo.NewUserUploadedFileRepo(pg),
+		rabbitmq.NewUserUploadedFilePublisher(l, ch),
+		email.NewUserUploadedFileEmailSender(smtpClient, l),
+	)
 	// Consumer
-	cs := event.NewUserUploadedFileConsumer(ch, l)
+	cs := event.NewUserUploadedFileConsumer(userUploadedFileCase, ch, l)
 	go cs.StartConsume()
 
 	// Use case
 	userProfileUseCase := usecase.NewUserProfileUseCase(
 		repo.NewUserProfileRepo(pg),
-	)
-	userUploadedFileCase := usecase.NewUserUploadedFileUseCase(
-		repo.NewUserUploadedFileRepo(pg),
-		rabbitmq.NewUserUploadedFilePublisher(ch),
 	)
 
 	// HTTP Server
