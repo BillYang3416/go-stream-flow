@@ -14,6 +14,7 @@ import (
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
 	redigo "github.com/gomodule/redigo/redis"
+	mail "github.com/xhit/go-simple-mail/v2"
 
 	"github.com/ory/dockertest/v3"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -186,6 +187,48 @@ func setupRabbitMQ(t *testing.T) (*amqp.Channel, func()) {
 	return ch, func() {
 		ch.Close()
 		conn.Close()
+		pool.Purge(resource)
+	}
+}
+
+func setupMailhog(t *testing.T) (*mail.SMTPClient, func()) {
+	t.Helper()
+
+	pool, err := dockertest.NewPool("")
+	if err != nil {
+		t.Fatalf("could not connect to docker: %s", err)
+	}
+
+	resource, err := pool.RunWithOptions(&dockertest.RunOptions{
+		Repository:   "mailhog/mailhog",
+		Tag:          "latest",
+		ExposedPorts: []string{"1025", "8025"},
+	})
+	if err != nil {
+		t.Fatalf("could not start resource: %s", err)
+	}
+
+	server := mail.NewSMTPClient()
+	server.Host = "localhost"
+	server.Port = 1025
+	server.Username = ""
+	server.Password = ""
+	server.Encryption = mail.EncryptionNone
+
+	var smtpClient *mail.SMTPClient
+	if err := pool.Retry(func() error {
+		smtpClient, err = server.Connect()
+		if err != nil {
+			return err
+		}
+		return nil
+
+	}); err != nil {
+		t.Fatalf("could not connect to mailhog: %s", err)
+	}
+
+	return smtpClient, func() {
+		smtpClient.Close()
 		pool.Purge(resource)
 	}
 }

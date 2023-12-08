@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/bgg/go-file-gate/internal/infra/email"
 	"github.com/bgg/go-file-gate/internal/infra/messaging/rabbitmq"
 	"github.com/bgg/go-file-gate/internal/infra/repo"
 	"github.com/bgg/go-file-gate/internal/usecase"
@@ -54,11 +55,15 @@ func TestUserUploadedFileRoute_Create(t *testing.T) {
 	ch, rabbitMQTeardown := setupRabbitMQ(t)
 	defer rabbitMQTeardown()
 
-	userUploadedFileUseCase := usecase.NewUserUploadedFileUseCase(repo.NewUserUploadedFileRepo(pg), rabbitmq.NewUserUploadedFilePublisher(ch))
+	smtpClient, smtpTeardown := setupMailhog(t)
+	defer smtpTeardown()
+
+	l := setupLogger(t)
+
+	userUploadedFileUseCase := usecase.NewUserUploadedFileUseCase(repo.NewUserUploadedFileRepo(pg), rabbitmq.NewUserUploadedFilePublisher(l, ch), email.NewUserUploadedFileEmailSender(smtpClient, l))
 
 	router, redisTeardown := setupRouter(t)
 	defer redisTeardown()
-	l := setupLogger(t)
 
 	NewUserUploadedFileRoutes(router.Group("/api/v1"), userUploadedFileUseCase, l)
 
@@ -95,7 +100,6 @@ func TestUserUploadedFileRoute_Create(t *testing.T) {
 		if w.Code != http.StatusNoContent {
 			t.Errorf("expected status code %d, got %d", http.StatusNoContent, w.Code)
 		}
-
 	})
 
 	t.Run("create user uploaded file with invalid request body", func(t *testing.T) {
