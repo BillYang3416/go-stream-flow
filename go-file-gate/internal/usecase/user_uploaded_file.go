@@ -8,12 +8,13 @@ import (
 )
 
 type UserUploadedFileUseCase struct {
-	repo UserUploadedFileRepo
-	pub  UserUploadedFilePublisher
+	repo   UserUploadedFileRepo
+	pub    UserUploadedFilePublisher
+	sender UserUploadedFileEmailSender
 }
 
-func NewUserUploadedFileUseCase(r UserUploadedFileRepo, p UserUploadedFilePublisher) *UserUploadedFileUseCase {
-	return &UserUploadedFileUseCase{repo: r, pub: p}
+func NewUserUploadedFileUseCase(r UserUploadedFileRepo, p UserUploadedFilePublisher, s UserUploadedFileEmailSender) *UserUploadedFileUseCase {
+	return &UserUploadedFileUseCase{repo: r, pub: p, sender: s}
 }
 
 func (uc *UserUploadedFileUseCase) Create(ctx context.Context, userUploadedFile entity.UserUploadedFile) (entity.UserUploadedFile, error) {
@@ -28,4 +29,13 @@ func (uc *UserUploadedFileUseCase) Create(ctx context.Context, userUploadedFile 
 	}
 
 	return userUploadedFile, nil
+}
+
+func (uc *UserUploadedFileUseCase) SendEmail(ctx context.Context, userUploadedFile entity.UserUploadedFile) error {
+	err := uc.sender.Send(ctx, userUploadedFile)
+	if err != nil {
+		return fmt.Errorf("UserUploadedFileUseCase - SendEmail - s.sender.Send: %w", err)
+	}
+
+	return nil
 }

@@ -20,6 +20,7 @@ type UserProfileRepo interface {
 
 type UserUploadedFile interface {
 	Create(context.Context, entity.UserUploadedFile) (entity.UserUploadedFile, error)
+	SendEmail(context.Context, entity.UserUploadedFile) error
 }
 
 type UserUploadedFileRepo interface {
@@ -28,4 +29,8 @@ type UserUploadedFileRepo interface {
 
 type UserUploadedFilePublisher interface {
 	Publish(context.Context, entity.UserUploadedFile) error
+}
+
+type UserUploadedFileEmailSender interface {
+	Send(context.Context, entity.UserUploadedFile) error
 }
