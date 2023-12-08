@@ -1,7 +1,7 @@
 app:
   name: 'GoChatApp'
   version: '1.0.0'
-  domain_url: https://57a9-2001-b011-380f-1fed-2d4e-c700-1f83-e40.ngrok-free.app
+  domain_url: https://69fb-2001-b011-380f-192b-c8e4-df40-3a48-c977.ngrok-free.app
 
 http:
   port: '8080'
