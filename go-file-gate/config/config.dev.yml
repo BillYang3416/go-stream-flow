@@ -22,3 +22,7 @@ rabbitmq:
   port: '5672'
   username: 'guest'
   password: 'guest'
+
+mailhog:
+  host: 'mailhog'
+  port: '1025'

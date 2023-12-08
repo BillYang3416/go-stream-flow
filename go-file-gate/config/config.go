@@ -14,6 +14,7 @@ type Config struct {
 	Log      LogConfig      `yaml:"log"`
 	Redis    RedisConfig    `yaml:"redis"`
 	RabbitMQ RabbitMQConfig `yaml:"rabbitmq"`
+	MailHog  MailHogConfig  `yaml:"mailhog"`
 }
 
 // AppConfig holds general application configurations
@@ -50,6 +51,11 @@ type RabbitMQConfig struct {
 	Port     string `yaml:"port" env-default:"5672"`
 	Username string `yaml:"username" env-default:"guest"`
 	Password string `yaml:"password" env-default:"guest"`
+}
+
+type MailHogConfig struct {
+	Host string `yaml:"host" env-default:"localhost"`
+	Port string `yaml:"port" env-default:"1025"`
 }
 
 // NewConfig reads application configuration and returns it
