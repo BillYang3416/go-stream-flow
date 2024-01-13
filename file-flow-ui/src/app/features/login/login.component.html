@@ -6,14 +6,14 @@
     <mat-card-content>
       <mat-tab-group>
         <mat-tab label="Sign In">
-          <form>
+          <form [formGroup]="signInForm" (ngSubmit)="onSignIn()">
             <!-- Username Input -->
             <mat-form-field appearance="fill" class="full-width-input">
               <mat-label>Username</mat-label>
               <input
                 matInput
                 placeholder="Enter your username"
-                name="username"
+                formControlName="username"
                 required
               />
             </mat-form-field>
@@ -25,14 +25,16 @@
                 matInput
                 type="password"
                 placeholder="Enter your password"
-                name="password"
+                formControlName="password"
                 required
               />
             </mat-form-field>
 
             <mat-card-actions>
               <!-- Sign In Button -->
-              <button mat-raised-button color="primary">Sign In</button>
+              <button mat-raised-button color="primary" type="submit">
+                Sign In
+              </button>
             </mat-card-actions>
             <mat-card-actions>
               <!-- Line Login Link -->
@@ -47,7 +49,7 @@
           </form>
         </mat-tab>
         <mat-tab label="Sign Up">
-          <form>
+          <form [formGroup]="signUpForm" (ngSubmit)="onSignUp()">
             <!-- Nickname Input -->
             <mat-form-field appearance="fill" class="full-width-input">
               <mat-label>Nickname</mat-label>
@@ -55,7 +57,7 @@
                 matInput
                 type="nickname"
                 placeholder="Enter your nickname"
-                name="nickname"
+                formControlName="nickname"
                 required
               />
             </mat-form-field>
@@ -66,7 +68,7 @@
               <input
                 matInput
                 placeholder="Choose a username"
-                name="newUsername"
+                formControlName="username"
                 required
               />
             </mat-form-field>
@@ -78,14 +80,16 @@
                 matInput
                 type="password"
                 placeholder="Create a password"
-                name="newPassword"
+                formControlName="password"
                 required
               />
             </mat-form-field>
 
             <mat-card-actions>
               <!-- Sign Up Button -->
-              <button mat-raised-button color="primary">Sign Up</button>
+              <button mat-raised-button color="primary" type="submit">
+                Sign Up
+              </button>
             </mat-card-actions>
           </form>
         </mat-tab>
