@@ -10,8 +10,6 @@ import { ApiPrefix, ApiService } from './core/services/api.service';
 export class AppComponent {
   title = 'file-flow-ui';
 
-  lineLoginUrl = environment.apiUrl + '/auth/line-login';
-
   constructor(private apiService: ApiService) {}
 
   ngOnInit(): void {}
