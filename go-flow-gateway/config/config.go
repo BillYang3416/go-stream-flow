@@ -32,7 +32,7 @@ type HTTPConfig struct {
 // PostgresConfig holds the configuration for the PostgreSQL database
 type PostgresConfig struct {
 	PoolMax int    `yaml:"pool_max" env:"PG_POOL_MAX" env-default:"10"`
-	URL     string `env:"DATABASE_URL" env-required:"true"`
+	URL     string `env:"LOCAL_DATABASE_URL" env-required:"true"`
 }
 
 // Log holds the configuration for the logger
