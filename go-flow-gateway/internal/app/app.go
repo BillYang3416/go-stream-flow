@@ -89,9 +89,12 @@ func Run(cfg *config.Config) {
 	userProfileUseCase := usecase.NewUserProfileUseCase(
 		repo.NewUserProfileRepo(pg),
 	)
+	oauthDetailUseCase := usecase.NewOAuthDetailUseCase(
+		repo.NewOAuthDetailRepo(pg),
+	)
 
 	// HTTP Server
-	v1.NewRouter(cfg, handler, l, userProfileUseCase, userUploadedFileCase)
+	v1.NewRouter(cfg, handler, l, userProfileUseCase, userUploadedFileCase, oauthDetailUseCase)
 	httpServer := &http.Server{
 		Addr:    ":" + cfg.HTTP.Port,
 		Handler: handler,

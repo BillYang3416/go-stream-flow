@@ -32,3 +32,15 @@ type UserUploadedFilePublisher interface {
 type UserUploadedFileEmailSender interface {
 	Send(context.Context, entity.UserUploadedFile) error
 }
+
+type OAuthDetail interface {
+	Create(context.Context, entity.OAuthDetail) error
+	UpdateRefreshToken(context.Context, string, string) error
+	GetByOAuthID(context.Context, string) (entity.OAuthDetail, error)
+}
+
+type OAuthDetailRepo interface {
+	Create(context.Context, entity.OAuthDetail) error
+	UpdateRefreshToken(context.Context, string, string) error
+	GetByOAuthID(context.Context, string) (entity.OAuthDetail, error)
+}

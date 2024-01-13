@@ -15,7 +15,7 @@ import (
 	_ "github.com/bgg/go-flow-gateway/docs"
 )
 
-func NewRouter(cfg *config.Config, handler *gin.Engine, l logger.Logger, u usecase.UserProfile, uu usecase.UserUploadedFile) {
+func NewRouter(cfg *config.Config, handler *gin.Engine, l logger.Logger, u usecase.UserProfile, uu usecase.UserUploadedFile, o usecase.OAuthDetail) {
 
 	// logging each http request
 	handler.Use(gin.Logger())
@@ -24,7 +24,7 @@ func NewRouter(cfg *config.Config, handler *gin.Engine, l logger.Logger, u useca
 	h := handler.Group("/api/v1")
 	{
 		NewUserProfileRoutes(h, u, l)
-		NewAuthRoutes(cfg, h, u, l)
+		NewAuthRoutes(cfg, h, u, l, o)
 		NewUserUploadedFileRoutes(h, uu, l)
 	}
 

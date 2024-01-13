@@ -25,10 +25,11 @@ type authRoutes struct {
 	domainUrl string
 	u         usecase.UserProfile
 	l         logger.Logger
+	o         usecase.OAuthDetail
 }
 
-func NewAuthRoutes(cfg *config.Config, handler *gin.RouterGroup, u usecase.UserProfile, l logger.Logger) {
-	r := authRoutes{domainUrl: cfg.App.DomainUrl, u: u, l: l}
+func NewAuthRoutes(cfg *config.Config, handler *gin.RouterGroup, u usecase.UserProfile, l logger.Logger, o usecase.OAuthDetail) {
+	r := authRoutes{domainUrl: cfg.App.DomainUrl, u: u, l: l, o: o}
 	auth := handler.Group("/auth")
 	{
 		auth.GET("/line-login", r.lineLogin)       // Initiate Line Login
@@ -92,20 +93,33 @@ func (r *authRoutes) lineCallback(c *gin.Context) {
 		return
 	}
 
-	// check the user profile is exists
-	up, err := r.u.GetByID(c.Request.Context(), lineUserProfile.Sub)
+	// check the oauth detail is exists
+	od, err := r.o.GetByOAuthID(c.Request.Context(), lineUserProfile.Sub)
 	if err != nil {
-		// user profile is not found,then create a new user profile
+		// oauth detail is not found,then create a new oauth detail
 		if _, ok := repo.AsNoRowsAffectedError(err); ok {
 
 			userProfile := entity.UserProfile{
-				UserID:       lineUserProfile.Sub,
-				DisplayName:  lineUserProfile.Name,
-				PictureURL:   lineUserProfile.Picture,
+				DisplayName: lineUserProfile.Name,
+				PictureURL:  lineUserProfile.Picture,
+			}
+
+			up, err := r.u.Create(c.Request.Context(), userProfile)
+			if err != nil {
+				r.l.Error(err, "http - v1 - lineCallback")
+				sendErrorResponse(c, http.StatusInternalServerError, "internal server problems")
+				return
+			}
+
+			oauthDetail := entity.OAuthDetail{
+				OAuthID:      lineUserProfile.Sub,
+				UserID:       up.UserID,
+				Provider:     "line",
 				AccessToken:  tokens.AccessToken,
 				RefreshToken: tokens.RefreshToken,
 			}
-			_, err = r.u.Create(c.Request.Context(), userProfile)
+
+			err = r.o.Create(c.Request.Context(), oauthDetail)
 			if err != nil {
 				r.l.Error(err, "http - v1 - lineCallback")
 				sendErrorResponse(c, http.StatusInternalServerError, "internal server problems")
@@ -119,8 +133,8 @@ func (r *authRoutes) lineCallback(c *gin.Context) {
 	}
 
 	// user profile already exists, update the refresh token from provider
-	if up.UserID == lineUserProfile.Sub {
-		err = r.u.UpdateRefreshToken(c.Request.Context(), lineUserProfile.Sub, tokens.RefreshToken)
+	if od.OAuthID == lineUserProfile.Sub {
+		err = r.o.UpdateRefreshToken(c.Request.Context(), lineUserProfile.Sub, tokens.RefreshToken)
 		if err != nil {
 			r.l.Error(err, "http - v1 - lineCallback")
 			sendErrorResponse(c, http.StatusInternalServerError, "internal server problems")
