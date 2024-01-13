@@ -261,7 +261,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "",
-	Description:      "This is a Go File Gate API server.",
+	Description:      "This is a Go Flow Gateway API server.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

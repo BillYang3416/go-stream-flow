@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "This is a Go File Gate API server.",
+        "description": "This is a Go Flow Gateway API server.",
         "contact": {},
         "version": "1.0"
     },

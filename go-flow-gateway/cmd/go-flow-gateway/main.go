@@ -9,9 +9,9 @@ import (
 	"github.com/bgg/go-flow-gateway/internal/app"
 )
 
-//	@tile			Go File Gate API
+//	@tile			Go Flow Gateway API
 //	@version		1.0
-//	@description	This is a Go File Gate API server.
+//	@description	This is a Go Flow Gateway API server.
 
 // @host		localhost:8080
 // @BasePath	/api/v1

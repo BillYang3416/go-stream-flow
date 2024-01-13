@@ -41,7 +41,7 @@ definitions:
 host: localhost:8080
 info:
   contact: {}
-  description: This is a Go File Gate API server.
+  description: This is a Go Flow Gateway API server.
   version: "1.0"
 paths:
   /auth/line-callback:
