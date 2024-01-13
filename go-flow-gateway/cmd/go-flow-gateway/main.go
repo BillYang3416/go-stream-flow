@@ -16,7 +16,6 @@ import (
 // @host		localhost:8080
 // @BasePath	/api/v1
 func main() {
-	// cfg, err := config.NewConfig("config/config.yml") for docker
 	env := os.Getenv("APP_ENV")
 	if env == "" {
 		env = "local"
