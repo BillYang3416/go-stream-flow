@@ -29,19 +29,19 @@ func TestUserProfileRepo_Create(t *testing.T) {
 		ctx, mock, repo := setupUserProfileRepoTest(t)
 
 		userProfile := entity.UserProfile{
-			UserID:       "123",
-			DisplayName:  "John Doe",
-			PictureURL:   "https://example.com/picture.jpg",
-			AccessToken:  "123",
-			RefreshToken: "123",
+			UserID:      123,
+			DisplayName: "John Doe",
+			PictureURL:  "https://example.com/picture.jpg",
 		}
 
-		mock.ExpectExec("INSERT INTO user_profiles").
-			WithArgs(userProfile.UserID, userProfile.DisplayName, userProfile.PictureURL, userProfile.AccessToken, userProfile.RefreshToken).
-			WillReturnResult(pgxmock.NewResult("INSERT", 1))
+		rows := pgxmock.NewRows([]string{"user_id"}).AddRow(123)
+
+		mock.ExpectQuery("INSERT INTO user_profiles").
+			WithArgs(userProfile.DisplayName, userProfile.PictureURL).
+			WillReturnRows(rows)
 
 		// Act
-		err := repo.Create(ctx, userProfile)
+		_, err := repo.Create(ctx, userProfile)
 
 		// Assert
 		assert.NoError(t, err, "Error should not have occurred when creating a user profile")
@@ -54,12 +54,12 @@ func TestUserProfileRepo_Create(t *testing.T) {
 
 		userProfile := entity.UserProfile{}
 
-		mock.ExpectExec("INSERT INTO user_profiles").
-			WithArgs(userProfile.UserID, userProfile.DisplayName, userProfile.PictureURL, userProfile.AccessToken, userProfile.RefreshToken).
+		mock.ExpectQuery("INSERT INTO user_profiles").
+			WithArgs(userProfile.UserID, userProfile.DisplayName, userProfile.PictureURL).
 			WillReturnError(assert.AnError)
 
 		// Act
-		err := repo.Create(ctx, userProfile)
+		_, err := repo.Create(ctx, userProfile)
 
 		// Assert
 		assert.Error(t, err, "Error should have occurred when creating a user profile")
@@ -74,7 +74,7 @@ func TestUserProfileRepo_GetByID(t *testing.T) {
 		ctx, mock, repo := setupUserProfileRepoTest(t)
 
 		userProfile := entity.UserProfile{
-			UserID:      "123",
+			UserID:      123,
 			DisplayName: "John Doe",
 			PictureURL:  "https://example.com/picture.jpg",
 		}
@@ -109,47 +109,6 @@ func TestUserProfileRepo_GetByID(t *testing.T) {
 		// Assert
 		assert.Error(t, err, "Error should have occurred when getting a user profile")
 		assert.Equal(t, entity.UserProfile{}, result, "User profile should be equal to expected")
-		mock.ExpectationsWereMet()
-	})
-}
-
-func TestUserProfileRepo_UpdateRefreshToken(t *testing.T) {
-
-	t.Run("should update a refresh token", func(t *testing.T) {
-		// Arrange
-		ctx, mock, repo := setupUserProfileRepoTest(t)
-
-		userID := "123"
-		refreshToken := "test"
-
-		mock.ExpectExec("UPDATE user_profiles").
-			WithArgs(refreshToken, userID).
-			WillReturnResult(pgxmock.NewResult("UPDATE", 1))
-
-		// Act
-		err := repo.UpdateRefreshToken(ctx, userID, refreshToken)
-
-		// Assert
-		assert.NoError(t, err, "Error should not have occurred when updating a refresh token")
-		mock.ExpectationsWereMet()
-	})
-
-	t.Run("should return an error when updating a refresh token", func(t *testing.T) {
-		// Arrange
-		ctx, mock, repo := setupUserProfileRepoTest(t)
-
-		userID := "123"
-		refreshToken := "test"
-
-		mock.ExpectExec("UPDATE user_profiles").
-			WithArgs(refreshToken, userID).
-			WillReturnError(assert.AnError)
-
-		// Act
-		err := repo.UpdateRefreshToken(ctx, userID, refreshToken)
-
-		// Assert
-		assert.Error(t, err, "Error should have occurred when updating a refresh token")
 		mock.ExpectationsWereMet()
 	})
 }

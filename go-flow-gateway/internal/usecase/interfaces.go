@@ -8,14 +8,12 @@ import (
 
 type UserProfile interface {
 	Create(context.Context, entity.UserProfile) (entity.UserProfile, error)
-	GetByID(context.Context, string) (entity.UserProfile, error)
-	UpdateRefreshToken(context.Context, string, string) error
+	GetByID(context.Context, int) (entity.UserProfile, error)
 }
 
 type UserProfileRepo interface {
-	Create(context.Context, entity.UserProfile) error
-	GetByID(context.Context, string) (entity.UserProfile, error)
-	UpdateRefreshToken(context.Context, string, string) error
+	Create(context.Context, entity.UserProfile) (entity.UserProfile, error)
+	GetByID(context.Context, int) (entity.UserProfile, error)
 }
 
 type UserUploadedFile interface {

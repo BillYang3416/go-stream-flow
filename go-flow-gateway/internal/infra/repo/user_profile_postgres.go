@@ -16,32 +16,36 @@ func NewUserProfileRepo(pg *postgres.Postgres) *UserProfileRepo {
 	return &UserProfileRepo{Postgres: pg}
 }
 
-func (r *UserProfileRepo) Create(ctx context.Context, u entity.UserProfile) error {
+func (r *UserProfileRepo) Create(ctx context.Context, u entity.UserProfile) (entity.UserProfile, error) {
 	// Build the SQL query using squirrel
 	sql, args, err := r.Builder.
-		Insert("user_profiles").                                                            // Assuming 'user_profiles' is the table name
-		Columns("user_id", "display_name", "picture_url", "access_token", "refresh_token"). // Columns in the table
-		Values(u.UserID, u.DisplayName, u.PictureURL, u.AccessToken, u.RefreshToken).       // Corresponding values from the UserProfile entity
+		Insert("user_profiles").                // Assuming 'user_profiles' is the table name
+		Columns("display_name", "picture_url"). // Columns in the table
+		Values(u.DisplayName, u.PictureURL).
+		Suffix("RETURNING user_id"). // Corresponding values from the UserProfile entity
 		ToSql()
 
 	if err != nil {
-		return fmt.Errorf("UserProfileRepo - Save - r.Builder: %w", err)
+		return entity.UserProfile{}, fmt.Errorf("UserProfileRepo - Create - r.Builder: %w", err)
 	}
 
-	// Execute the query using pgx
-	_, err = r.Pool.Exec(ctx, sql, args...)
+	var userID int
+	// Use QueryRow to execute the query and scan the user_id directly into the userID variable
+	err = r.Pool.QueryRow(ctx, sql, args...).Scan(&userID)
 	if err != nil {
 		pgErrorChecker := postgres.NewPGErrorChecker()
 		if pgErrorChecker.IsUniqueViolation(err) {
-			return NewUniqueConstraintError("duplicate key", fmt.Sprintf("UserProfileRepo - Save - r.Pool.Exec: %s", err.Error()))
+			return entity.UserProfile{}, NewUniqueConstraintError("duplicate key", fmt.Sprintf("UserProfileRepo - Create - r.Pool.Exec: %s", err.Error()))
 		}
-		return fmt.Errorf("UserProfileRepo - Save - r.Pool.Exec: %w", err)
+		return entity.UserProfile{}, fmt.Errorf("UserProfileRepo - Create - r.Pool.Exec: %w", err)
 	}
 
-	return nil
+	// Set the userID in the UserProfile entity before returning
+	u.UserID = userID
+	return u, nil
 }
 
-func (r *UserProfileRepo) GetByID(ctx context.Context, userId string) (entity.UserProfile, error) {
+func (r *UserProfileRepo) GetByID(ctx context.Context, userId int) (entity.UserProfile, error) {
 	sql, args, err := r.Builder.Select("user_id", "display_name", "picture_url").From("user_profiles").Where("user_id = ?", userId).ToSql()
 
 	if err != nil {
@@ -60,22 +64,4 @@ func (r *UserProfileRepo) GetByID(ctx context.Context, userId string) (entity.Us
 	}
 
 	return u, nil
-}
-
-func (r *UserProfileRepo) UpdateRefreshToken(ctx context.Context, userId string, refreshToken string) error {
-	sql, args, err := r.Builder.Update("user_profiles").Set("refresh_token", refreshToken).Where("user_id = ?", userId).ToSql()
-
-	if err != nil {
-		return fmt.Errorf("UserProfileRepo - UpdateRefreshToken - r.Builder: %w", err)
-	}
-
-	commandTag, err := r.Pool.Exec(ctx, sql, args...)
-	if err != nil {
-		return fmt.Errorf("UserProfileRepo - UpdateRefreshToken - r.Pool.Exec: %w", err)
-	}
-	if commandTag.RowsAffected() == 0 {
-		return NewNoRowsAffectedError("user profile is not found", "UserProfileRepo - UpdateRefreshToken - r.Pool.Exec: no rows affected")
-	}
-
-	return nil
 }

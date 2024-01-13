@@ -2,6 +2,7 @@ package v1
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/bgg/go-flow-gateway/internal/entity"
 	"github.com/bgg/go-flow-gateway/internal/infra/repo"
@@ -29,13 +30,13 @@ func NewUserProfileRoutes(handler *gin.RouterGroup, u usecase.UserProfile, l log
 }
 
 type createUserProfileRequest struct {
-	UserID      string `json:"userId" example:"U1234567890abcdef1234567890abcdef" binding:"required"`
+	UserID      int    `json:"userId" example:"U1234567890abcdef1234567890abcdef" binding:"required"`
 	DisplayName string `json:"displayName" example:"John Doe" binding:"required"`
 	PictureURL  string `json:"pictureUrl" example:"https://example.com/picture.jpg" binding:"required,url"`
 }
 
 type userProfileResponse struct {
-	UserID      string `json:"userId" example:"U1234567890abcdef1234567890abcdef"`
+	UserID      int    `json:"userId" example:"U1234567890abcdef1234567890abcdef"`
 	DisplayName string `json:"displayName" example:"John Doe"`
 	PictureURL  string `json:"pictureUrl" example:"https://example.com/picture.jpg"`
 }
@@ -104,7 +105,12 @@ func (r *userProfileRoutes) create(c *gin.Context) {
 //	@Failure		400						{object}	errorResponse
 //	@Router			/user-profiles/{userId} [get]
 func (r *userProfileRoutes) get(c *gin.Context) {
-	userId := c.Param("userId")
+	userId, err := strconv.Atoi(c.Param("userId"))
+	if err != nil {
+		r.l.Error(err, "http - v1 - find")
+		sendErrorResponse(c, http.StatusBadRequest, "invalid user id")
+		return
+	}
 
 	userProfile, err := r.u.GetByID(c.Request.Context(), userId)
 
