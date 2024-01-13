@@ -1,6 +1,6 @@
 # swagger
-cd go-file-gate
-swag init -g cmd/go-file-gate/main.go -o ./docs
+cd go-flow-gateway
+swag init -g cmd/go-flow-gateway/main.go -o ./docs
 
 # Run Docker commands
 docker-compose down

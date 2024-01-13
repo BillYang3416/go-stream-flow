@@ -19,7 +19,7 @@ type Config struct {
 
 // AppConfig holds general application configurations
 type AppConfig struct {
-	Name      string `yaml:"name" env:"APP_NAME" env-default:"GoChatApp"`
+	Name      string `yaml:"name" env:"APP_NAME" env-default:"GoFlowGatewayApp"`
 	Version   string `yaml:"version" env:"APP_VERSION" env-default:"1.0.0"`
 	DomainUrl string `yaml:"domain_url" env:"DOMAIN_URL" env-default:"http://localhost:8080"`
 }
@@ -32,7 +32,7 @@ type HTTPConfig struct {
 // PostgresConfig holds the configuration for the PostgreSQL database
 type PostgresConfig struct {
 	PoolMax int    `yaml:"pool_max" env:"PG_POOL_MAX" env-default:"10"`
-	URL     string `env:"LOCAL_DATABASE_URL" env-required:"true"`
+	URL     string `env:"DATABASE_URL" env-required:"true"`
 }
 
 // Log holds the configuration for the logger
