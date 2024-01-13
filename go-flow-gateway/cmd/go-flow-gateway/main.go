@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/bgg/go-file-gate/config"
-	"github.com/bgg/go-file-gate/internal/app"
+	"github.com/bgg/go-flow-gateway/config"
+	"github.com/bgg/go-flow-gateway/internal/app"
 )
 
 //	@tile			Go File Gate API

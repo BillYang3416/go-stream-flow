@@ -9,11 +9,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/bgg/go-file-gate/internal/infra/email"
-	"github.com/bgg/go-file-gate/internal/infra/messaging/rabbitmq"
-	"github.com/bgg/go-file-gate/internal/infra/repo"
-	"github.com/bgg/go-file-gate/internal/usecase"
-	"github.com/bgg/go-file-gate/pkg/postgres"
+	"github.com/bgg/go-flow-gateway/internal/infra/email"
+	"github.com/bgg/go-flow-gateway/internal/infra/messaging/rabbitmq"
+	"github.com/bgg/go-flow-gateway/internal/infra/repo"
+	"github.com/bgg/go-flow-gateway/internal/usecase"
+	"github.com/bgg/go-flow-gateway/pkg/postgres"
 )
 
 func setupUserUploadedFilesTable(t *testing.T) (*postgres.Postgres, func()) {

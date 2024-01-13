@@ -1,4 +1,4 @@
-module github.com/bgg/go-file-gate
+module github.com/bgg/go-flow-gateway
 
 go 1.21.3
 

@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/bgg/go-file-gate/internal/entity"
-	"github.com/bgg/go-file-gate/pkg/postgres"
+	"github.com/bgg/go-flow-gateway/internal/entity"
+	"github.com/bgg/go-flow-gateway/pkg/postgres"
 	"github.com/pashagolub/pgxmock/v3"
 	"github.com/stretchr/testify/assert"
 )

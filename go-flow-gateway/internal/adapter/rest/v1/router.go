@@ -3,16 +3,16 @@ package v1
 import (
 	"net/http"
 
-	"github.com/bgg/go-file-gate/config"
-	"github.com/bgg/go-file-gate/internal/usecase"
-	"github.com/bgg/go-file-gate/pkg/logger"
+	"github.com/bgg/go-flow-gateway/config"
+	"github.com/bgg/go-flow-gateway/internal/usecase"
+	"github.com/bgg/go-flow-gateway/pkg/logger"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
 	// Swagger docs.
-	_ "github.com/bgg/go-file-gate/docs"
+	_ "github.com/bgg/go-flow-gateway/docs"
 )
 
 func NewRouter(cfg *config.Config, handler *gin.Engine, l logger.Logger, u usecase.UserProfile, uu usecase.UserUploadedFile) {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/bgg/go-file-gate/internal/entity"
+	"github.com/bgg/go-flow-gateway/internal/entity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

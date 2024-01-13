@@ -5,8 +5,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 
-	"github.com/bgg/go-file-gate/internal/entity"
-	"github.com/bgg/go-file-gate/pkg/logger"
+	"github.com/bgg/go-flow-gateway/internal/entity"
+	"github.com/bgg/go-flow-gateway/pkg/logger"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 

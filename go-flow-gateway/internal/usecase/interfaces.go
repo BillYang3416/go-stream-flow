@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 
-	"github.com/bgg/go-file-gate/internal/entity"
+	"github.com/bgg/go-flow-gateway/internal/entity"
 )
 
 type UserProfile interface {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/bgg/go-file-gate/internal/entity"
+	"github.com/bgg/go-flow-gateway/internal/entity"
 )
 
 type UserUploadedFileUseCase struct {

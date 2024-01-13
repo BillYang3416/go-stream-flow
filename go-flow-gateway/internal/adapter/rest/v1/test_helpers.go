@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bgg/go-file-gate/pkg/logger"
-	"github.com/bgg/go-file-gate/pkg/postgres"
+	"github.com/bgg/go-flow-gateway/pkg/logger"
+	"github.com/bgg/go-flow-gateway/pkg/postgres"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
