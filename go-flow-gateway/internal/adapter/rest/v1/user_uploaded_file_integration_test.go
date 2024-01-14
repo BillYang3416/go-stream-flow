@@ -22,7 +22,7 @@ func setupUserUploadedFilesTable(t *testing.T) (*postgres.Postgres, func()) {
 	pg, dbTeardown := setupUserProfilesTable(t)
 
 	// insert test data
-	_, err := pg.Pool.Exec(context.Background(), `INSERT INTO user_profiles (display_name, picture_url, access_token, refresh_token) VALUES ('Test User', 'https://test.com/test.jpg', 'test-access-token', 'test-refresh-token');`)
+	_, err := pg.Pool.Exec(context.Background(), `INSERT INTO user_profiles (display_name, picture_url) VALUES ('Test User', 'https://test.com/test.jpg');`)
 	if err != nil {
 		t.Fatalf("could not insert test data: %s", err)
 	}

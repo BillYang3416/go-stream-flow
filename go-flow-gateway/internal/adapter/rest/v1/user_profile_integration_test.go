@@ -19,11 +19,9 @@ func setupUserProfilesTable(t *testing.T) (*postgres.Postgres, func()) {
 	pg, dbTeardown := setupDatabase(t)
 
 	createTableSQL := `CREATE TABLE user_profiles (
-		user_id VARCHAR(255) PRIMARY KEY,
+		user_id SERIAL PRIMARY KEY,
 		display_name VARCHAR(255) NOT NULL,
-		picture_url VARCHAR(255),
-		access_token VARCHAR(255) NOT NULL,
-		refresh_token VARCHAR(255) NOT NULL
+		picture_url VARCHAR(255)
 	);`
 
 	if _, err := pg.Pool.Exec(context.Background(), createTableSQL); err != nil {
@@ -51,7 +49,6 @@ func TestUserProfileRoute_Create(t *testing.T) {
 	t.Run("create user profile successfully", func(t *testing.T) {
 
 		payload := map[string]interface{}{
-			"UserID":      "testuser",
 			"DisplayName": "Test User",
 			"PictureURL":  "https://test.com/test.jpg",
 		}
@@ -73,7 +70,6 @@ func TestUserProfileRoute_Create(t *testing.T) {
 	t.Run("create user profile with invalid payload", func(t *testing.T) {
 
 		payload := map[string]interface{}{
-			"UserID":      "",
 			"DisplayName": "Test User",
 			"PictureURL":  "invalid-url",
 		}

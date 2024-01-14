@@ -30,13 +30,11 @@ func NewUserProfileRoutes(handler *gin.RouterGroup, u usecase.UserProfile, l log
 }
 
 type createUserProfileRequest struct {
-	UserID      int    `json:"userId" example:"U1234567890abcdef1234567890abcdef" binding:"required"`
 	DisplayName string `json:"displayName" example:"John Doe" binding:"required"`
 	PictureURL  string `json:"pictureUrl" example:"https://example.com/picture.jpg" binding:"required,url"`
 }
 
 type userProfileResponse struct {
-	UserID      int    `json:"userId" example:"U1234567890abcdef1234567890abcdef"`
 	DisplayName string `json:"displayName" example:"John Doe"`
 	PictureURL  string `json:"pictureUrl" example:"https://example.com/picture.jpg"`
 }
@@ -68,7 +66,6 @@ func (r *userProfileRoutes) create(c *gin.Context) {
 	userProfile, err := r.u.Create(
 		c.Request.Context(),
 		entity.UserProfile{
-			UserID:      request.UserID,
 			DisplayName: request.DisplayName,
 			PictureURL:  request.PictureURL,
 		},
@@ -85,7 +82,6 @@ func (r *userProfileRoutes) create(c *gin.Context) {
 	}
 
 	response := userProfileResponse{
-		UserID:      userProfile.UserID,
 		DisplayName: userProfile.DisplayName,
 		PictureURL:  userProfile.PictureURL,
 	}
@@ -121,7 +117,6 @@ func (r *userProfileRoutes) get(c *gin.Context) {
 	}
 
 	response := userProfileResponse{
-		UserID:      userProfile.UserID,
 		DisplayName: userProfile.DisplayName,
 		PictureURL:  userProfile.PictureURL,
 	}

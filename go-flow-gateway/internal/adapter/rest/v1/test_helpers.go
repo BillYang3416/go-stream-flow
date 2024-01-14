@@ -124,7 +124,7 @@ func setupSessions(t *testing.T, router *gin.Engine) *http.Cookie {
 	// define a route to set session for testing
 	router.GET("/set-session", func(c *gin.Context) {
 		session := sessions.Default(c)
-		session.Set("userID", "testuser")
+		session.Set("userID", 1)
 		if err := session.Save(); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 			return
