@@ -22,7 +22,7 @@ func setupUserUploadedFilesTable(t *testing.T) (*postgres.Postgres, func()) {
 	pg, dbTeardown := setupUserProfilesTable(t)
 
 	// insert test data
-	_, err := pg.Pool.Exec(context.Background(), `INSERT INTO user_profiles (user_id, display_name, picture_url, access_token, refresh_token) VALUES ('testuser', 'Test User', 'https://test.com/test.jpg', 'test-access-token', 'test-refresh-token');`)
+	_, err := pg.Pool.Exec(context.Background(), `INSERT INTO user_profiles (display_name, picture_url, access_token, refresh_token) VALUES ('Test User', 'https://test.com/test.jpg', 'test-access-token', 'test-refresh-token');`)
 	if err != nil {
 		t.Fatalf("could not insert test data: %s", err)
 	}
@@ -32,7 +32,7 @@ func setupUserUploadedFilesTable(t *testing.T) (*postgres.Postgres, func()) {
 		name VARCHAR(255) NOT NULL,
 		size BIGINT NOT NULL,
 		content BYTEA NOT NULL,
-		user_id VARCHAR(255) NOT NULL REFERENCES user_profiles(user_id),
+		user_id INT NOT NULL REFERENCES user_profiles(user_id),
 		created_at TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
 		email_sent BOOLEAN NOT NULL,
 		email_sent_at TIMESTAMPTZ,

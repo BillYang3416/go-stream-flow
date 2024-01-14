@@ -70,10 +70,11 @@ func (r *userUploadedFileRoutes) create(c *gin.Context) {
 	}
 
 	session := sessions.Default(c)
-	userID, exists := session.Get("userID").(string)
+	userID, exists := session.Get("userID").(int)
 	if !exists {
 		r.l.Error(err, "http - v1 - create")
 		sendErrorResponse(c, http.StatusBadRequest, "invalid request body")
+		return
 	}
 
 	_, err = r.u.Create(c.Request.Context(),

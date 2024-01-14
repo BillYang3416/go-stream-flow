@@ -49,7 +49,7 @@ func TestUserUploadedFileUseCase_Create(t *testing.T) {
 			Name:    "test.txt",
 			Size:    100,
 			Content: []byte("test"),
-			UserID:  "123",
+			UserID:  123,
 		}
 		mockRepo.On("Create", ctx, userUploadedFile).Return(nil)
 		mockPub.On("Publish", ctx, userUploadedFile).Return(nil)
@@ -72,7 +72,7 @@ func TestUserUploadedFileUseCase_Create(t *testing.T) {
 		uc := NewUserUploadedFileUseCase(mockRepo, mockPub, mockSender)
 		ctx := context.Background()
 		userUploadedFile := entity.UserUploadedFile{
-			UserID: "123",
+			UserID: 123,
 		}
 		mockRepo.On("Create", ctx, userUploadedFile).Return(assert.AnError)
 
@@ -99,7 +99,7 @@ func TestUserUploadedFileUseCase_SendEmail(t *testing.T) {
 			Name:           "test.txt",
 			Size:           100,
 			Content:        []byte("test"),
-			UserID:         "123",
+			UserID:         123,
 			EmailRecipient: "",
 		}
 		mockSender.On("Send", ctx, userUploadedFile).Return(nil)
@@ -123,7 +123,7 @@ func TestUserUploadedFileUseCase_SendEmail(t *testing.T) {
 			Name:           "test.txt",
 			Size:           100,
 			Content:        []byte("test"),
-			UserID:         "123",
+			UserID:         123,
 			EmailRecipient: "",
 		}
 		mockSender.On("Send", ctx, userUploadedFile).Return(assert.AnError)

@@ -36,8 +36,8 @@ func NewRouter(cfg *config.Config, handler *gin.Engine, l logger.Logger, u useca
 func CheckSessionMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session := sessions.Default(c)
-		userID, exists := session.Get("userID").(string)
-		if !exists || userID == "" {
+		_, exists := session.Get("userID").(int)
+		if !exists {
 			sendErrorResponse(c, http.StatusUnauthorized, "unauthorized")
 			c.Abort()
 			return

@@ -34,7 +34,7 @@ func TestUserUploadedFile_Created(t *testing.T) {
 			Name:      "test.txt",
 			Size:      123,
 			Content:   []byte("test"),
-			UserID:    "123",
+			UserID:    123,
 			EmailSent: false,
 		}
 
