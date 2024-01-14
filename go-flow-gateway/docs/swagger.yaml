@@ -8,13 +8,9 @@ definitions:
       pictureUrl:
         example: https://example.com/picture.jpg
         type: string
-      userId:
-        example: U1234567890abcdef1234567890abcdef
-        type: string
     required:
     - displayName
     - pictureUrl
-    - userId
     type: object
   v1.errorResponse:
     properties:
@@ -33,9 +29,6 @@ definitions:
         type: string
       pictureUrl:
         example: https://example.com/picture.jpg
-        type: string
-      userId:
-        example: U1234567890abcdef1234567890abcdef
         type: string
     type: object
 host: localhost:8080

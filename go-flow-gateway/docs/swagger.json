@@ -194,8 +194,7 @@
             "type": "object",
             "required": [
                 "displayName",
-                "pictureUrl",
-                "userId"
+                "pictureUrl"
             ],
             "properties": {
                 "displayName": {
@@ -205,10 +204,6 @@
                 "pictureUrl": {
                     "type": "string",
                     "example": "https://example.com/picture.jpg"
-                },
-                "userId": {
-                    "type": "string",
-                    "example": "U1234567890abcdef1234567890abcdef"
                 }
             }
         },
@@ -237,10 +232,6 @@
                 "pictureUrl": {
                     "type": "string",
                     "example": "https://example.com/picture.jpg"
-                },
-                "userId": {
-                    "type": "string",
-                    "example": "U1234567890abcdef1234567890abcdef"
                 }
             }
         }

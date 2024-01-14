@@ -201,8 +201,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "displayName",
-                "pictureUrl",
-                "userId"
+                "pictureUrl"
             ],
             "properties": {
                 "displayName": {
@@ -212,10 +211,6 @@ const docTemplate = `{
                 "pictureUrl": {
                     "type": "string",
                     "example": "https://example.com/picture.jpg"
-                },
-                "userId": {
-                    "type": "string",
-                    "example": "U1234567890abcdef1234567890abcdef"
                 }
             }
         },
@@ -244,10 +239,6 @@ const docTemplate = `{
                 "pictureUrl": {
                     "type": "string",
                     "example": "https://example.com/picture.jpg"
-                },
-                "userId": {
-                    "type": "string",
-                    "example": "U1234567890abcdef1234567890abcdef"
                 }
             }
         }
