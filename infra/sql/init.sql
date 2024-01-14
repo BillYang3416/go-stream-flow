@@ -28,7 +28,7 @@ CREATE TABLE user_uploaded_files (
     name VARCHAR(255) NOT NULL,
     size BIGINT NOT NULL,
     content BYTEA NOT NULL,
-    user_id int NOT NULL REFERENCES user_profiles(user_id),
+    user_id INT NOT NULL REFERENCES user_profiles(user_id),
     created_at TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
     email_sent BOOLEAN NOT NULL,
     email_sent_at TIMESTAMPTZ,
