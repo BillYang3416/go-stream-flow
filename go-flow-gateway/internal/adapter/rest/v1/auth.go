@@ -125,6 +125,9 @@ func (r *authRoutes) lineCallback(c *gin.Context) {
 				sendErrorResponse(c, http.StatusInternalServerError, "internal server problems")
 				return
 			}
+
+			// TODO: think about this way is good or not
+			od.UserID = up.UserID
 		} else {
 			r.l.Error(err, "http - v1 - lineCallback")
 			sendErrorResponse(c, http.StatusInternalServerError, "internal server problems")
@@ -143,7 +146,7 @@ func (r *authRoutes) lineCallback(c *gin.Context) {
 	}
 
 	session := sessions.Default(c)
-	session.Set("userID", lineUserProfile.Sub)
+	session.Set("userID", od.UserID)
 	err = session.Save()
 	if err != nil {
 		sendErrorResponse(c, http.StatusInternalServerError, err.Error())
