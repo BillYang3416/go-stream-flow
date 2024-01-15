@@ -1,5 +1,21 @@
 basePath: /api/v1
 definitions:
+  v1.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  v1.RegisterRequest:
+    properties:
+      displayName:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
   v1.createUserProfileRequest:
     properties:
       displayName:
@@ -65,6 +81,28 @@ paths:
       summary: Line Login
       tags:
       - Auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/v1.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      summary: Login
+      tags:
+      - Auth
   /auth/logout:
     get:
       description: Logout
@@ -74,6 +112,28 @@ paths:
           schema:
             type: string
       summary: Logout
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/v1.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      summary: Register
       tags:
       - Auth
   /user-profiles:
