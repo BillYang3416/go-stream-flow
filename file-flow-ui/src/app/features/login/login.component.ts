@@ -55,7 +55,6 @@ export class LoginComponent implements OnInit, AfterViewInit {
     const value = this.signInForm.value;
     this.apiSvc.post(ApiPrefix.AUTH, 'login', value).subscribe({
       next: (_) => {
-        this.onReset();
         this.snackBar.open('Sign in successfully!', '', {
           duration: 2000,
         });
@@ -78,7 +77,6 @@ export class LoginComponent implements OnInit, AfterViewInit {
     const value = this.signUpForm.value;
     this.apiSvc.post(ApiPrefix.AUTH, 'register', value).subscribe({
       next: (_) => {
-        this.onReset();
         this.snackBar.open('Sign up successfully, please try to sign in.', '', {
           duration: 2000,
         });
