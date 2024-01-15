@@ -52,3 +52,17 @@ func (uc *UserCredentialUseCase) GetByUsername(ctx context.Context, username str
 
 	return u, nil
 }
+
+func (uc *UserCredentialUseCase) Login(ctx context.Context, username, password string) (entity.UserCredential, error) {
+	u, err := uc.repo.GetByUsername(ctx, username)
+	if err != nil {
+		return entity.UserCredential{}, fmt.Errorf("UserCredentialUseCase - Login - GetByUsername: %w", err)
+	}
+
+	err = uc.hasher.CompareHash(ctx, password, u.PasswordHash)
+	if err != nil {
+		return entity.UserCredential{}, fmt.Errorf("UserCredentialUseCase - Login - CompareHash: %w", err)
+	}
+
+	return u, nil
+}

@@ -131,3 +131,50 @@ func TestUserCredentialUsecase_GetByUsername(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 }
+
+func TestUserCredentialUsecase_Login(t *testing.T) {
+
+	t.Run("Login successfully", func(t *testing.T) {
+
+		mockRepo := new(MockUserCredentialRepo)
+		mockHasher := new(MockPasswordHasher)
+		uc := NewUserCredentialUseCase(mockRepo, mockHasher)
+		ctx := context.Background()
+
+		userCredential := entity.UserCredential{
+			UserID:       123,
+			Username:     "test",
+			PasswordHash: "$2a$10",
+		}
+		mockRepo.On("GetByUsername", ctx, userCredential.Username).Return(userCredential, nil)
+		mockHasher.On("CompareHash", ctx, "test", userCredential.PasswordHash).Return(nil)
+
+		u, err := uc.Login(ctx, userCredential.Username, "test")
+
+		assert.NoError(t, err)
+		assert.Equal(t, userCredential, u)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Login with invalid input", func(t *testing.T) {
+
+		mockRepo := new(MockUserCredentialRepo)
+		mockHasher := new(MockPasswordHasher)
+		uc := NewUserCredentialUseCase(mockRepo, mockHasher)
+		ctx := context.Background()
+
+		userCredential := entity.UserCredential{
+			UserID:       123,
+			Username:     "test",
+			PasswordHash: "$2a$10",
+		}
+		mockRepo.On("GetByUsername", ctx, userCredential.Username).Return(userCredential, assert.AnError)
+		mockHasher.On("CompareHash", ctx, "test", userCredential.PasswordHash).Return(assert.AnError)
+
+		u, err := uc.Login(ctx, userCredential.Username, "test")
+
+		assert.Error(t, err)
+		assert.Equal(t, entity.UserCredential{}, u)
+		mockRepo.AssertExpectations(t)
+	})
+}
