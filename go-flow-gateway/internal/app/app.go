@@ -12,6 +12,7 @@ import (
 	"github.com/bgg/go-flow-gateway/internal/infra/email"
 	"github.com/bgg/go-flow-gateway/internal/infra/messaging/rabbitmq"
 	"github.com/bgg/go-flow-gateway/internal/infra/repo"
+	"github.com/bgg/go-flow-gateway/internal/infra/utils"
 	"github.com/bgg/go-flow-gateway/internal/usecase"
 	"github.com/bgg/go-flow-gateway/pkg/logger"
 	"github.com/bgg/go-flow-gateway/pkg/postgres"
@@ -92,9 +93,13 @@ func Run(cfg *config.Config) {
 	oauthDetailUseCase := usecase.NewOAuthDetailUseCase(
 		repo.NewOAuthDetailRepo(pg),
 	)
+	userCredentialUseCase := usecase.NewUserCredentialUseCase(
+		repo.NewUserCredentialRepo(pg),
+		utils.NewBcryptHasher(),
+	)
 
 	// HTTP Server
-	v1.NewRouter(cfg, handler, l, userProfileUseCase, userUploadedFileCase, oauthDetailUseCase)
+	v1.NewRouter(cfg, handler, l, userProfileUseCase, userUploadedFileCase, oauthDetailUseCase, userCredentialUseCase)
 	httpServer := &http.Server{
 		Addr:    ":" + cfg.HTTP.Port,
 		Handler: handler,

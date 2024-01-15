@@ -26,16 +26,104 @@ type authRoutes struct {
 	u         usecase.UserProfile
 	l         logger.Logger
 	o         usecase.OAuthDetail
+	c         usecase.UserCredential
 }
 
-func NewAuthRoutes(cfg *config.Config, handler *gin.RouterGroup, u usecase.UserProfile, l logger.Logger, o usecase.OAuthDetail) {
-	r := authRoutes{domainUrl: cfg.App.DomainUrl, u: u, l: l, o: o}
+func NewAuthRoutes(cfg *config.Config, handler *gin.RouterGroup, u usecase.UserProfile, l logger.Logger, o usecase.OAuthDetail, c usecase.UserCredential) {
+	r := authRoutes{domainUrl: cfg.App.DomainUrl, u: u, l: l, o: o, c: c}
 	auth := handler.Group("/auth")
 	{
+		auth.POST("/register", r.register)
+		auth.POST("/login", r.login)
 		auth.GET("/line-login", r.lineLogin)       // Initiate Line Login
 		auth.GET("/line-callback", r.lineCallback) // Handler the redirect from Line Login
 		auth.GET("/logout", r.logout)
 	}
+}
+
+type RegisterRequest struct {
+	DisplayName string `json:"displayName"`
+	Username    string `json:"username"`
+	Password    string `json:"password"`
+}
+
+// register godoc
+//
+// @Summary Register
+// @Description Register
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param body body RegisterRequest true "body"
+// @Success 200 {string} string	"ok"
+// @Router /auth/register [post]
+func (r *authRoutes) register(c *gin.Context) {
+	var req RegisterRequest
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		sendErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userProfile := entity.UserProfile{
+		DisplayName: req.DisplayName,
+	}
+
+	up, err := r.u.Create(c.Request.Context(), userProfile)
+	if err != nil {
+		r.l.Error(err, "http - v1 - register")
+		sendErrorResponse(c, http.StatusInternalServerError, "internal server problems")
+		return
+	}
+
+	err = r.c.Create(c.Request.Context(), up.UserID, req.Username, req.Password)
+	if err != nil {
+		r.l.Error(err, "http - v1 - register")
+		sendErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, nil)
+}
+
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+// login godoc
+//
+// @Summary Login
+// @Description Login
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param body body LoginRequest true "body"
+// @Success 200 {string} string	"ok"
+// @Router /auth/login [post]
+func (r *authRoutes) login(c *gin.Context) {
+	var req LoginRequest
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		sendErrorResponse(c, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	uc, err := r.c.Login(c.Request.Context(), req.Username, req.Password)
+	if err != nil {
+		sendErrorResponse(c, http.StatusInternalServerError, "login failed")
+		return
+	}
+
+	session := sessions.Default(c)
+	session.Set("userID", uc.UserID)
+	err = session.Save()
+	if err != nil {
+		sendErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, nil)
 }
 
 // generateState godoc
