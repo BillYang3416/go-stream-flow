@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
@@ -12,7 +13,7 @@ func NewBcryptHasher() *BcryptHasher {
 	return &BcryptHasher{}
 }
 
-func (bh *BcryptHasher) GenerateHash(password string) (string, error) {
+func (bh *BcryptHasher) GenerateHash(ctx context.Context, password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", fmt.Errorf("BcryptHasher - GenerateHash - bcrypt.GenerateFromPassword: %w", err)
@@ -21,7 +22,7 @@ func (bh *BcryptHasher) GenerateHash(password string) (string, error) {
 	return string(hashedPassword), nil
 }
 
-func (bh *BcryptHasher) CompareHash(password, hashedPassword string) error {
+func (bh *BcryptHasher) CompareHash(ctx context.Context, password, hashedPassword string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	if err != nil {
 		return fmt.Errorf("BcryptHasher - CompareHashAndPassword: %w", err)

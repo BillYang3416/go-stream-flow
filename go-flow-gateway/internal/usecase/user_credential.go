@@ -20,6 +20,11 @@ func NewUserCredentialUseCase(repo UserCredentialRepo, hasher PasswordHasher) *U
 }
 
 func (uc *UserCredentialUseCase) Create(ctx context.Context, userID int, username, password string) error {
+	_, err := uc.repo.GetByUsername(ctx, username)
+	if err == nil {
+		return fmt.Errorf("UserCredentialUseCase - Create - GetByUsername: has duplicate username")
+	}
+
 	hashedPassword, err := uc.hasher.GenerateHash(ctx, password)
 	if err != nil {
 		return fmt.Errorf("UserCredentialUseCase - Create - hasher.GenerateHash: %w", err)
@@ -37,4 +42,13 @@ func (uc *UserCredentialUseCase) Create(ctx context.Context, userID int, usernam
 	}
 
 	return nil
+}
+
+func (uc *UserCredentialUseCase) GetByUsername(ctx context.Context, username string) (entity.UserCredential, error) {
+	u, err := uc.repo.GetByUsername(ctx, username)
+	if err != nil {
+		return entity.UserCredential{}, fmt.Errorf("UserCredentialUseCase - GetByUsername: %w", err)
+	}
+
+	return u, nil
 }

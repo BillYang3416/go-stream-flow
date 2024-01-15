@@ -46,11 +46,13 @@ type OAuthDetailRepo interface {
 }
 
 type UserCredential interface {
-	Create(context.Context, entity.UserCredential) error
+	Create(context.Context, int, string, string) error
+	GetByUsername(context.Context, string) (entity.UserCredential, error)
 }
 
 type UserCredentialRepo interface {
 	Create(context.Context, entity.UserCredential) error
+	GetByUsername(context.Context, string) (entity.UserCredential, error)
 }
 
 type PasswordHasher interface {

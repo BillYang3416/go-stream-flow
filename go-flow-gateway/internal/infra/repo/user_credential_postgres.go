@@ -39,3 +39,24 @@ func (r *UserCredentialRepo) Create(ctx context.Context, u entity.UserCredential
 
 	return nil
 }
+
+func (r *UserCredentialRepo) GetByUsername(ctx context.Context, username string) (entity.UserCredential, error) {
+	sql, args, err := r.Builder.Select("user_id", "username", "password_hash").From("user_credentials").Where("username = ?", username).ToSql()
+
+	if err != nil {
+		return entity.UserCredential{}, fmt.Errorf("UserCredentialRepo - GetByUsername - r.Builder: %w", err)
+	}
+
+	var u entity.UserCredential
+	row := r.Pool.QueryRow(ctx, sql, args...)
+	err = row.Scan(&u.UserID, &u.Username, &u.PasswordHash)
+	if err != nil {
+		pgErrorChecker := postgres.NewPGErrorChecker()
+		if pgErrorChecker.IsNoRows(err) {
+			return entity.UserCredential{}, NewNoRowsAffectedError("user credential not found", fmt.Sprintf("UserCredentialRepo - GetByUsername - r.Pool.QueryRow: %s", err.Error()))
+		}
+		return entity.UserCredential{}, fmt.Errorf("UserCredentialRepo - GetByUsername - r.Pool.QueryRow: %w", err)
+	}
+
+	return u, nil
+}

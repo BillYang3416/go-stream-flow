@@ -61,3 +61,45 @@ func TestUserCredentialRepo_Create(t *testing.T) {
 		mock.ExpectationsWereMet()
 	})
 }
+
+func TestUserCredentialRepo_GetByUsername(t *testing.T) {
+
+	t.Run("should get a user credential by username", func(t *testing.T) {
+
+		ctx, mock, repo := setupUserCredentialRepoTest(t)
+
+		userCredential := entity.UserCredential{
+			UserID:       123,
+			Username:     "123",
+			PasswordHash: "123",
+		}
+
+		mock.ExpectQuery("SELECT user_id, username, password_hash FROM user_credentials").
+			WithArgs(userCredential.Username).
+			WillReturnRows(mock.NewRows([]string{"user_id", "username", "password_hash"}).AddRow(userCredential.UserID, userCredential.Username, userCredential.PasswordHash))
+
+		u, err := repo.GetByUsername(ctx, userCredential.Username)
+		assert.NoError(t, err, "Error should not have occurred when getting a user credential by username")
+		assert.Equal(t, userCredential, u, "UserCredential should have been returned")
+		mock.ExpectationsWereMet()
+	})
+
+	t.Run("should return an error when getting a user credential by username", func(t *testing.T) {
+
+		ctx, mock, repo := setupUserCredentialRepoTest(t)
+
+		userCredential := entity.UserCredential{
+			UserID:       123,
+			Username:     "123",
+			PasswordHash: "123",
+		}
+
+		mock.ExpectQuery("SELECT user_id, username, password_hash FROM user_credentials").
+			WithArgs(userCredential.Username).
+			WillReturnError(assert.AnError)
+
+		_, err := repo.GetByUsername(ctx, userCredential.Username)
+		assert.Error(t, err, "Error should have occurred when getting a user credential by username")
+		mock.ExpectationsWereMet()
+	})
+}
