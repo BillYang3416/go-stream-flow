@@ -44,3 +44,16 @@ type OAuthDetailRepo interface {
 	UpdateRefreshToken(context.Context, string, string) error
 	GetByOAuthID(context.Context, string) (entity.OAuthDetail, error)
 }
+
+type UserCredential interface {
+	Create(context.Context, entity.UserCredential) error
+}
+
+type UserCredentialRepo interface {
+	Create(context.Context, entity.UserCredential) error
+}
+
+type PasswordHasher interface {
+	GenerateHash(context.Context, string) (string, error)
+	CompareHash(context.Context, string, string) error
+}
