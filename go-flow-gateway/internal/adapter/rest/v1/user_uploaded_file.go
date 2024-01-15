@@ -48,12 +48,14 @@ func (r *userUploadedFileRoutes) create(c *gin.Context) {
 	if err := c.ShouldBind(&request); err != nil {
 		r.l.Error(err, "http - v1 - create")
 		sendErrorResponse(c, http.StatusBadRequest, "invalid request body")
+		return
 	}
 
 	file, err := c.FormFile("file")
 	if err != nil {
 		r.l.Error(err, "http - v1 - create")
 		sendErrorResponse(c, http.StatusBadRequest, "invalid request body")
+		return
 	}
 
 	uploadedFile, err := file.Open()
