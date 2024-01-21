@@ -40,3 +40,37 @@ func (r *UserUploadedFileRepo) Create(ctx context.Context, u entity.UserUploaded
 
 	return nil
 }
+
+func (r *UserUploadedFileRepo) GetPaginatedFiles(ctx context.Context, lastID, userID, limit int) ([]entity.UserUploadedFile, error) {
+	// Build the SQL query using squirrel
+	sql, args, err := r.Builder.
+		Select("id", "name", "size", "content", "user_id", "created_at", "email_sent", "email_sent_at", "email_recipient", "error_message").
+		From("user_uploaded_files").
+		Where("user_id = ?", userID).
+		Where("id > ?", lastID).
+		Limit(uint64(limit)).
+		ToSql()
+
+	if err != nil {
+		return nil, fmt.Errorf("UserUploadedFileRepo - GetPaginatedFiles - r.Builder: %w", err)
+	}
+
+	// Execute the query using pgx
+	rows, err := r.Pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("UserUploadedFileRepo - GetPaginatedFiles - r.Pool.Query: %w", err)
+	}
+	defer rows.Close()
+
+	var files []entity.UserUploadedFile
+	for rows.Next() {
+		var file entity.UserUploadedFile
+		err := rows.Scan(&file.ID, &file.Name, &file.Size, &file.Content, &file.UserID, &file.CreatedAt, &file.EmailSent, &file.EmailSentAt, &file.EmailRecipient, &file.ErrorMessage)
+		if err != nil {
+			return nil, fmt.Errorf("UserUploadedFileRepo - GetPaginatedFiles - rows.Scan: %w", err)
+		}
+		files = append(files, file)
+	}
+
+	return files, nil
+}

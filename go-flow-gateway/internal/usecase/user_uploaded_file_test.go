@@ -36,6 +36,11 @@ func (m *MockUserUploadedFileEmailSender) Send(ctx context.Context, file entity.
 	return args.Error(0)
 }
 
+func (m *MockUserUploadedFileRepo) GetPaginatedFiles(ctx context.Context, lastID, userID, limit int) ([]entity.UserUploadedFile, error) {
+	args := m.Called(ctx, lastID, userID, limit)
+	return args.Get(0).([]entity.UserUploadedFile), args.Error(1)
+}
+
 func TestUserUploadedFileUseCase_Create(t *testing.T) {
 	t.Run("Create user uploaded file successfully", func(t *testing.T) {
 		// Arrange
@@ -134,5 +139,57 @@ func TestUserUploadedFileUseCase_SendEmail(t *testing.T) {
 		// Assert
 		assert.Error(t, err)
 		mockSender.AssertExpectations(t)
+	})
+}
+
+func TestUserUploadedFileUseCase_GetPaginatedFiles(t *testing.T) {
+	t.Run("Get paginated files successfully", func(t *testing.T) {
+		// Arrange
+		mockRepo := new(MockUserUploadedFileRepo)
+		mockPub := new(MockUserUploadedFilePublisher)
+		mockSender := new(MockUserUploadedFileEmailSender)
+		uc := NewUserUploadedFileUseCase(mockRepo, mockPub, mockSender)
+		ctx := context.Background()
+		userID := 123
+		lastID := 0
+		limit := 10
+		userUploadedFiles := []entity.UserUploadedFile{
+			{
+				Name:           "test.txt",
+				Size:           100,
+				Content:        []byte("test"),
+				UserID:         123,
+				EmailRecipient: "",
+			},
+		}
+		mockRepo.On("GetPaginatedFiles", ctx, lastID, userID, limit).Return(userUploadedFiles, nil)
+
+		// Act
+		result, err := uc.GetPaginatedFiles(ctx, lastID, userID, limit)
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, userUploadedFiles, result)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Get paginated files with invalid user ID", func(t *testing.T) {
+		// Arrange
+		mockRepo := new(MockUserUploadedFileRepo)
+		mockPub := new(MockUserUploadedFilePublisher)
+		mockSender := new(MockUserUploadedFileEmailSender)
+		uc := NewUserUploadedFileUseCase(mockRepo, mockPub, mockSender)
+		ctx := context.Background()
+		userID := 123
+		lastID := 0
+		limit := 10
+		mockRepo.On("GetPaginatedFiles", ctx, lastID, userID, limit).Return([]entity.UserUploadedFile{}, assert.AnError)
+
+		// Act
+		_, err := uc.GetPaginatedFiles(ctx, lastID, userID, limit)
+
+		// Assert
+		assert.Error(t, err)
+		mockRepo.AssertExpectations(t)
 	})
 }
