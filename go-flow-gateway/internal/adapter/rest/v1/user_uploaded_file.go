@@ -3,6 +3,7 @@ package v1
 import (
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/bgg/go-flow-gateway/internal/entity"
 	"github.com/bgg/go-flow-gateway/internal/usecase"
@@ -24,6 +25,7 @@ func NewUserUploadedFileRoutes(handler *gin.RouterGroup, u usecase.UserUploadedF
 	{
 		h.Use(CheckSessionMiddleware())
 		h.POST("/", r.create)
+		h.GET("/", r.getPaginatedFiles)
 	}
 }
 
@@ -94,4 +96,53 @@ func (r *userUploadedFileRoutes) create(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusNoContent, nil)
+}
+
+type getPaginatedFilesResponse struct {
+	Files []entity.UserUploadedFile `json:"files"`
+}
+
+// get paginated files godoc
+//
+// @Summary		Get paginated files
+// @Description	Get paginated files
+// @Tags			User Uploaded File
+// @Accept			json
+// @Produce		json
+// @Param			lastID	query	int	false	"last id"
+// @Param			limit	query	int	false	"limit"
+// @Success		200						{object}	getPaginatedFilesResponse
+// @Failure		400						{object}	errorResponse
+// @Router			/user-uploaded-files [get]
+func (r *userUploadedFileRoutes) getPaginatedFiles(c *gin.Context) {
+	lastID, err := strconv.Atoi(c.Query("lastID"))
+	if err != nil {
+		r.l.Error(err, "http - v1 - getPaginatedFiles")
+		sendErrorResponse(c, http.StatusBadRequest, "invalid lastID query parameter")
+		return
+	}
+
+	limit, err := strconv.Atoi(c.Query("limit"))
+	if err != nil {
+		r.l.Error(err, "http - v1 - getPaginatedFiles")
+		sendErrorResponse(c, http.StatusBadRequest, "invalid limit query parameter")
+		return
+	}
+
+	session := sessions.Default(c)
+	userID, exists := session.Get("userID").(int)
+	if !exists {
+		r.l.Error(err, "http - v1 - getPaginatedFiles")
+		sendErrorResponse(c, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	files, err := r.u.GetPaginatedFiles(c.Request.Context(), lastID, userID, limit)
+	if err != nil {
+		r.l.Error(err, "http - v1 - getPaginatedFiles")
+		sendErrorResponse(c, http.StatusInternalServerError, "Failed to get paginated files")
+		return
+	}
+
+	c.JSON(http.StatusOK, getPaginatedFilesResponse{Files: files})
 }
