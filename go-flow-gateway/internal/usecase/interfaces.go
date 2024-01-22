@@ -19,12 +19,12 @@ type UserProfileRepo interface {
 type UserUploadedFile interface {
 	Create(context.Context, entity.UserUploadedFile) (entity.UserUploadedFile, error)
 	SendEmail(context.Context, entity.UserUploadedFile) error
-	GetPaginatedFiles(context.Context, int, int, int) ([]entity.UserUploadedFile, error)
+	GetPaginatedFiles(context.Context, int, int, int) ([]entity.UserUploadedFile, int, error)
 }
 
 type UserUploadedFileRepo interface {
 	Create(context.Context, entity.UserUploadedFile) error
-	GetPaginatedFiles(context.Context, int, int, int) ([]entity.UserUploadedFile, error)
+	GetPaginatedFiles(context.Context, int, int, int) ([]entity.UserUploadedFile, int, error)
 }
 
 type UserUploadedFilePublisher interface {

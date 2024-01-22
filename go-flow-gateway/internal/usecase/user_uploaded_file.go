@@ -40,11 +40,11 @@ func (uc *UserUploadedFileUseCase) SendEmail(ctx context.Context, userUploadedFi
 	return nil
 }
 
-func (uc *UserUploadedFileUseCase) GetPaginatedFiles(ctx context.Context, lastID, userID, limit int) ([]entity.UserUploadedFile, error) {
-	files, err := uc.repo.GetPaginatedFiles(ctx, lastID, userID, limit)
+func (uc *UserUploadedFileUseCase) GetPaginatedFiles(ctx context.Context, lastID, userID, limit int) ([]entity.UserUploadedFile, int, error) {
+	files, totalRecords, err := uc.repo.GetPaginatedFiles(ctx, lastID, userID, limit)
 	if err != nil {
-		return nil, fmt.Errorf("UserUploadedFileUseCase - GetPaginatedFiles - s.repo.GetPaginatedFiles: %w", err)
+		return nil, 0, fmt.Errorf("UserUploadedFileUseCase - GetPaginatedFiles - s.repo.GetPaginatedFiles: %w", err)
 	}
 
-	return files, nil
+	return files, totalRecords, nil
 }

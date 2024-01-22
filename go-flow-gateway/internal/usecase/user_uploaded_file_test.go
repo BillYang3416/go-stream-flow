@@ -36,9 +36,9 @@ func (m *MockUserUploadedFileEmailSender) Send(ctx context.Context, file entity.
 	return args.Error(0)
 }
 
-func (m *MockUserUploadedFileRepo) GetPaginatedFiles(ctx context.Context, lastID, userID, limit int) ([]entity.UserUploadedFile, error) {
+func (m *MockUserUploadedFileRepo) GetPaginatedFiles(ctx context.Context, lastID, userID, limit int) ([]entity.UserUploadedFile, int, error) {
 	args := m.Called(ctx, lastID, userID, limit)
-	return args.Get(0).([]entity.UserUploadedFile), args.Error(1)
+	return args.Get(0).([]entity.UserUploadedFile), args.Get(1).(int), args.Error(2)
 }
 
 func TestUserUploadedFileUseCase_Create(t *testing.T) {
@@ -162,12 +162,13 @@ func TestUserUploadedFileUseCase_GetPaginatedFiles(t *testing.T) {
 				EmailRecipient: "",
 			},
 		}
-		mockRepo.On("GetPaginatedFiles", ctx, lastID, userID, limit).Return(userUploadedFiles, nil)
+		mockRepo.On("GetPaginatedFiles", ctx, lastID, userID, limit).Return(userUploadedFiles, len(userUploadedFiles), nil)
 
 		// Act
-		result, err := uc.GetPaginatedFiles(ctx, lastID, userID, limit)
+		result, totalRecords, err := uc.GetPaginatedFiles(ctx, lastID, userID, limit)
 
 		// Assert
+		assert.Equal(t, len(userUploadedFiles), totalRecords)
 		assert.NoError(t, err)
 		assert.Equal(t, userUploadedFiles, result)
 		mockRepo.AssertExpectations(t)
@@ -183,10 +184,10 @@ func TestUserUploadedFileUseCase_GetPaginatedFiles(t *testing.T) {
 		userID := 123
 		lastID := 0
 		limit := 10
-		mockRepo.On("GetPaginatedFiles", ctx, lastID, userID, limit).Return([]entity.UserUploadedFile{}, assert.AnError)
+		mockRepo.On("GetPaginatedFiles", ctx, lastID, userID, limit).Return([]entity.UserUploadedFile{}, 0, assert.AnError)
 
 		// Act
-		_, err := uc.GetPaginatedFiles(ctx, lastID, userID, limit)
+		_, _, err := uc.GetPaginatedFiles(ctx, lastID, userID, limit)
 
 		// Assert
 		assert.Error(t, err)

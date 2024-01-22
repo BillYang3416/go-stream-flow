@@ -99,7 +99,8 @@ func (r *userUploadedFileRoutes) create(c *gin.Context) {
 }
 
 type getPaginatedFilesResponse struct {
-	Files []entity.UserUploadedFile `json:"files"`
+	Files        []entity.UserUploadedFile `json:"files"`
+	TotalRecords int                       `json:"totalRecords"`
 }
 
 // get paginated files godoc
@@ -137,12 +138,12 @@ func (r *userUploadedFileRoutes) getPaginatedFiles(c *gin.Context) {
 		return
 	}
 
-	files, err := r.u.GetPaginatedFiles(c.Request.Context(), lastID, userID, limit)
+	files, totalRecords, err := r.u.GetPaginatedFiles(c.Request.Context(), lastID, userID, limit)
 	if err != nil {
 		r.l.Error(err, "http - v1 - getPaginatedFiles")
 		sendErrorResponse(c, http.StatusInternalServerError, "Failed to get paginated files")
 		return
 	}
 
-	c.JSON(http.StatusOK, getPaginatedFilesResponse{Files: files})
+	c.JSON(http.StatusOK, getPaginatedFilesResponse{Files: files, TotalRecords: totalRecords})
 }

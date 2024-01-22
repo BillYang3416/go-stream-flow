@@ -41,7 +41,25 @@ func (r *UserUploadedFileRepo) Create(ctx context.Context, u entity.UserUploaded
 	return nil
 }
 
-func (r *UserUploadedFileRepo) GetPaginatedFiles(ctx context.Context, lastID, userID, limit int) ([]entity.UserUploadedFile, error) {
+func (r *UserUploadedFileRepo) GetPaginatedFiles(ctx context.Context, lastID, userID, limit int) ([]entity.UserUploadedFile, int, error) {
+
+	// Query to get the total number of records first
+	var totalRecords int
+	countSql, countArgs, err := r.Builder.
+		Select("COUNT(id)").
+		From("user_uploaded_files").
+		Where("user_id = ?", userID).
+		ToSql()
+
+	if err != nil {
+		return nil, 0, fmt.Errorf("UserUploadedFileRepo - GetPaginatedFiles - r.Builder: %w", err)
+	}
+
+	err = r.Pool.QueryRow(ctx, countSql, countArgs...).Scan(&totalRecords)
+	if err != nil {
+		return nil, 0, fmt.Errorf("UserUploadedFileRepo - GetPaginatedFiles - r.Pool.QueryRow: %w", err)
+	}
+
 	// Build the SQL query using squirrel
 	sql, args, err := r.Builder.
 		Select("id", "name", "size", "content", "user_id", "created_at", "email_sent", "email_sent_at", "email_recipient", "error_message").
@@ -49,16 +67,17 @@ func (r *UserUploadedFileRepo) GetPaginatedFiles(ctx context.Context, lastID, us
 		Where("user_id = ?", userID).
 		Where("id > ?", lastID).
 		Limit(uint64(limit)).
+		OrderBy("id ASC").
 		ToSql()
 
 	if err != nil {
-		return nil, fmt.Errorf("UserUploadedFileRepo - GetPaginatedFiles - r.Builder: %w", err)
+		return nil, totalRecords, fmt.Errorf("UserUploadedFileRepo - GetPaginatedFiles - r.Builder: %w", err)
 	}
 
 	// Execute the query using pgx
 	rows, err := r.Pool.Query(ctx, sql, args...)
 	if err != nil {
-		return nil, fmt.Errorf("UserUploadedFileRepo - GetPaginatedFiles - r.Pool.Query: %w", err)
+		return nil, totalRecords, fmt.Errorf("UserUploadedFileRepo - GetPaginatedFiles - r.Pool.Query: %w", err)
 	}
 	defer rows.Close()
 
@@ -67,10 +86,10 @@ func (r *UserUploadedFileRepo) GetPaginatedFiles(ctx context.Context, lastID, us
 		var file entity.UserUploadedFile
 		err := rows.Scan(&file.ID, &file.Name, &file.Size, &file.Content, &file.UserID, &file.CreatedAt, &file.EmailSent, &file.EmailSentAt, &file.EmailRecipient, &file.ErrorMessage)
 		if err != nil {
-			return nil, fmt.Errorf("UserUploadedFileRepo - GetPaginatedFiles - rows.Scan: %w", err)
+			return nil, totalRecords, fmt.Errorf("UserUploadedFileRepo - GetPaginatedFiles - rows.Scan: %w", err)
 		}
 		files = append(files, file)
 	}
 
-	return files, nil
+	return files, totalRecords, nil
 }
