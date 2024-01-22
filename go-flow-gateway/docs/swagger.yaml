@@ -1,5 +1,32 @@
 basePath: /api/v1
 definitions:
+  entity.UserUploadedFile:
+    properties:
+      content:
+        type: string
+      createdAt:
+        type: string
+      emailRecipient:
+        description: The email address of the recipient
+        type: string
+      emailSent:
+        description: Indicates if the email was sent successfully
+        type: boolean
+      emailSentAt:
+        description: The timestamp when the email was sent
+        type: string
+      errorMessage:
+        description: // Error message if the email was not sent successfully
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      size:
+        type: integer
+      userId:
+        type: integer
+    type: object
   v1.LoginRequest:
     properties:
       password:
@@ -37,6 +64,15 @@ definitions:
       message:
         example: message
         type: string
+    type: object
+  v1.getPaginatedFilesResponse:
+    properties:
+      files:
+        items:
+          $ref: '#/definitions/entity.UserUploadedFile'
+        type: array
+      totalRecords:
+        type: integer
     type: object
   v1.userProfileResponse:
     properties:
@@ -188,6 +224,33 @@ paths:
       tags:
       - User Profile
   /user-uploaded-files:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated files
+      parameters:
+      - description: last id
+        in: query
+        name: lastID
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.getPaginatedFilesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      summary: Get paginated files
+      tags:
+      - User Uploaded File
     post:
       consumes:
       - multipart/form-data

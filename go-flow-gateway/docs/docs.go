@@ -222,6 +222,47 @@ const docTemplate = `{
             }
         },
         "/user-uploaded-files": {
+            "get": {
+                "description": "Get paginated files",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Uploaded File"
+                ],
+                "summary": "Get paginated files",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "last id",
+                        "name": "lastID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.getPaginatedFilesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Create user uploaded file",
                 "consumes": [
@@ -265,6 +306,45 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "entity.UserUploadedFile": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "emailRecipient": {
+                    "description": "The email address of the recipient",
+                    "type": "string"
+                },
+                "emailSent": {
+                    "description": "Indicates if the email was sent successfully",
+                    "type": "boolean"
+                },
+                "emailSentAt": {
+                    "description": "The timestamp when the email was sent",
+                    "type": "string"
+                },
+                "errorMessage": {
+                    "description": "// Error message if the email was not sent successfully",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "userId": {
+                    "type": "integer"
+                }
+            }
+        },
         "v1.LoginRequest": {
             "type": "object",
             "properties": {
@@ -319,6 +399,20 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "message"
+                }
+            }
+        },
+        "v1.getPaginatedFilesResponse": {
+            "type": "object",
+            "properties": {
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.UserUploadedFile"
+                    }
+                },
+                "totalRecords": {
+                    "type": "integer"
                 }
             }
         },
