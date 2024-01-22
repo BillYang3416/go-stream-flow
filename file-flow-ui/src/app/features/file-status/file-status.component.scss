@@ -1,0 +1,38 @@
+.file-status-container {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.centered-table {
+  margin: auto;
+  width: 100%;
+}
+
+.title-padding {
+  padding: 16px 0;
+}
+
+.mat-card-header {
+  justify-content: center;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.mat-cell,
+.mat-header-cell {
+  padding: 16px;
+}
+
+.mat-table {
+  min-width: 600px;
+}
+
+.no-data-message {
+  text-align: center;
+  padding: 20px;
+  font-style: italic;
+  color: grey;
+}
