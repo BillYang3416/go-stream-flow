@@ -20,8 +20,8 @@ func (r *UserUploadedFileRepo) Create(ctx context.Context, u entity.UserUploaded
 	// Build the SQL query using squirrel
 	sql, args, err := r.Builder.
 		Insert("user_uploaded_files").
-		Columns("name", "size", "content", "user_id", "email_sent").
-		Values(u.Name, u.Size, u.Content, u.UserID, u.EmailSent).
+		Columns("name", "size", "content", "user_id", "email_sent", "email_recipient").
+		Values(u.Name, u.Size, u.Content, u.UserID, u.EmailSent, u.EmailRecipient).
 		ToSql()
 
 	if err != nil {

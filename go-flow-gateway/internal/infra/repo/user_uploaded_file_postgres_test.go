@@ -32,15 +32,16 @@ func TestUserUploadedFile_Created(t *testing.T) {
 		ctx, mock, repo := setupUserUploadedFileRepoTest(t)
 
 		userUploadedFile := entity.UserUploadedFile{
-			Name:      "test.txt",
-			Size:      123,
-			Content:   []byte("test"),
-			UserID:    123,
-			EmailSent: false,
+			Name:           "test.txt",
+			Size:           123,
+			Content:        []byte("test"),
+			UserID:         123,
+			EmailSent:      false,
+			EmailRecipient: "test@mail.com",
 		}
 
 		mock.ExpectExec("INSERT INTO user_uploaded_files").
-			WithArgs(userUploadedFile.Name, userUploadedFile.Size, userUploadedFile.Content, userUploadedFile.UserID, userUploadedFile.EmailSent).
+			WithArgs(userUploadedFile.Name, userUploadedFile.Size, userUploadedFile.Content, userUploadedFile.UserID, userUploadedFile.EmailSent, userUploadedFile.EmailRecipient).
 			WillReturnResult(pgxmock.NewResult("INSERT", 1))
 
 		// Act
@@ -83,6 +84,8 @@ func TestUserUploadedFile_GetPaginatedFiles(t *testing.T) {
 		userID := 123
 		limit := 10
 
+		now := time.Now()
+		errorMessage := "test error message"
 		userUploadedFiles := []entity.UserUploadedFile{
 			{
 				ID:             3,
@@ -90,11 +93,11 @@ func TestUserUploadedFile_GetPaginatedFiles(t *testing.T) {
 				Size:           123,
 				Content:        []byte("test"),
 				UserID:         123,
-				CreatedAt:      time.Now(),
+				CreatedAt:      &now,
 				EmailSent:      false,
-				EmailSentAt:    time.Now(),
+				EmailSentAt:    &now,
 				EmailRecipient: "",
-				ErrorMessage:   "",
+				ErrorMessage:   &errorMessage,
 			},
 		}
 
