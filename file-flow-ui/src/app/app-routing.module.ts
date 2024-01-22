@@ -19,7 +19,13 @@ const routes: Routes = [
         (m) => m.FileFlowModule
       ),
   },
-
+  {
+    path: 'file-status',
+    loadChildren: () =>
+      import('./features/file-status/file-status.module').then(
+        (m) => m.FileStatusModule
+      ),
+  },
   { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: '**', redirectTo: '/home' },
 ];
