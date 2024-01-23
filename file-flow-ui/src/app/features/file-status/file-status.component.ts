@@ -4,7 +4,7 @@ import {
   Component,
   ViewChild,
 } from '@angular/core';
-import { MatPaginator } from '@angular/material/paginator';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { GetFileStatusResponse } from 'src/app/core/models/GetFileStatusResponse';
@@ -27,6 +27,7 @@ export class FileStatusComponent implements AfterViewInit {
   ];
   dataSource = new MatTableDataSource<FileStatus>([]);
 
+  pageIndex = 0;
   resultsLength = 0;
   isLoadingResults = false;
   limit = 10;
@@ -42,19 +43,44 @@ export class FileStatusComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     this.toggleSpinner();
+    this.getFiles(this.lastID, this.limit);
+  }
+
+  onPageChange(event: PageEvent) {
+    const previousPageIndex = event.previousPageIndex || 0;
+    if (event.pageIndex > previousPageIndex) {
+      this.lastID = this.lastID + this.limit;
+    } else if (event.pageIndex < previousPageIndex) {
+      this.lastID = this.lastID - this.limit;
+    } else if (event.pageIndex === 0) {
+      this.lastID = 0;
+    } else if (
+      event.pageIndex ===
+      Math.ceil(event.length / event.pageSize) - 1
+    ) {
+      this.lastID = event.length;
+    }
+    this.toggleSpinner();
+    this.getFiles(this.lastID, this.limit);
+    this.pageIndex = event.pageIndex;
+  }
+
+  private toggleSpinner() {
+    this.isLoadingResults = !this.isLoadingResults;
+    this.changeDetectorRef.detectChanges();
+  }
+
+  private getFiles(lastID: number, limit: number) {
     this.apiSvc
       .get<GetFileStatusResponse>(ApiPrefix.USER_UPLOADED_FILES, '', {
-        lastID: this.lastID,
-        limit: this.limit,
+        lastID: lastID,
+        limit: limit,
       })
       .subscribe({
         next: (data) => {
           this.resultsLength = data.totalRecords;
           this.dataSource.data = data.files;
 
-          if (data.files && data.files.length > 0) {
-            this.lastID = data.files[data.files.length - 1].id;
-          }
           this.toggleSpinner();
         },
         error: (err) => {
@@ -62,10 +88,5 @@ export class FileStatusComponent implements AfterViewInit {
           this.snackBar.open('Failed to load data.', 'OK', { duration: 2000 });
         },
       });
-  }
-
-  private toggleSpinner() {
-    this.isLoadingResults = !this.isLoadingResults;
-    this.changeDetectorRef.detectChanges();
   }
 }

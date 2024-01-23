@@ -89,7 +89,9 @@
       <mat-paginator
         [length]="resultsLength"
         [pageSize]="10"
+        [pageIndex]="pageIndex"
         showFirstLastButtons
+        (page)="onPageChange($event)"
       ></mat-paginator>
     </mat-card>
   </div>
