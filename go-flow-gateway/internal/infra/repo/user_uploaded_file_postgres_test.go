@@ -40,14 +40,16 @@ func TestUserUploadedFile_Created(t *testing.T) {
 			EmailRecipient: "test@mail.com",
 		}
 
-		mock.ExpectExec("INSERT INTO user_uploaded_files").
+		userUploadedFileID := 1
+		mock.ExpectQuery("INSERT INTO user_uploaded_files").
 			WithArgs(userUploadedFile.Name, userUploadedFile.Size, userUploadedFile.Content, userUploadedFile.UserID, userUploadedFile.EmailSent, userUploadedFile.EmailRecipient).
-			WillReturnResult(pgxmock.NewResult("INSERT", 1))
+			WillReturnRows(mock.NewRows([]string{"id"}).AddRow(userUploadedFileID))
 
 		// Act
-		err := repo.Create(ctx, userUploadedFile)
+		returnedID, err := repo.Create(ctx, userUploadedFile)
 
 		// Assert
+		assert.Equal(t, userUploadedFileID, returnedID, "The returned ID should match the expected value")
 		assert.NoError(t, err, "Error should not have occurred when creating a user uploaded file")
 		mock.ExpectationsWereMet()
 	})
@@ -64,7 +66,7 @@ func TestUserUploadedFile_Created(t *testing.T) {
 			WillReturnError(assert.AnError)
 
 		// Act
-		err := repo.Create(ctx, userUploadedFile)
+		_, err := repo.Create(ctx, userUploadedFile)
 
 		// Assert
 		assert.Error(t, err, "Error should have occurred when creating a user uploaded file")
@@ -119,4 +121,48 @@ func TestUserUploadedFile_GetPaginatedFiles(t *testing.T) {
 		assert.Equal(t, userUploadedFiles, files, "The returned list of user uploaded files should match the expected list")
 		mock.ExpectationsWereMet()
 	})
+}
+
+func TestUserUploadedFile_UpdateEmailSent(t *testing.T) {
+
+	t.Run("should update email sent", func(t *testing.T) {
+
+		// Arrange
+		ctx, mock, repo := setupUserUploadedFileRepoTest(t)
+
+		emailSent := true
+		emailSentAt := "NOW()"
+		id := 123
+
+		mock.ExpectExec("UPDATE user_uploaded_files SET email_sent = \\$1, email_sent_at = \\$2").
+			WithArgs(emailSent, emailSentAt, id).
+			WillReturnResult(pgxmock.NewResult("UPDATE", 1))
+
+		// Act
+		err := repo.UpdateEmailSent(ctx, id)
+
+		// Assert
+		assert.NoError(t, err, "Error should not have occurred when updating email sent")
+		mock.ExpectationsWereMet()
+	})
+
+	t.Run("should return an error when updating email sent", func(t *testing.T) {
+
+		// Arrange
+		ctx, mock, repo := setupUserUploadedFileRepoTest(t)
+
+		id := 123
+
+		mock.ExpectExec("UPDATE user_uploaded_files SET").
+			WithArgs(id).
+			WillReturnError(assert.AnError)
+
+		// Act
+		err := repo.UpdateEmailSent(ctx, id)
+
+		// Assert
+		assert.Error(t, err, "Error should have occurred when updating email sent")
+		mock.ExpectationsWereMet()
+	})
+
 }

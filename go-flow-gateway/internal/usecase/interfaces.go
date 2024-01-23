@@ -23,8 +23,9 @@ type UserUploadedFile interface {
 }
 
 type UserUploadedFileRepo interface {
-	Create(context.Context, entity.UserUploadedFile) error
+	Create(context.Context, entity.UserUploadedFile) (int, error)
 	GetPaginatedFiles(context.Context, int, int, int) ([]entity.UserUploadedFile, int, error)
+	UpdateEmailSent(context.Context, int) error
 }
 
 type UserUploadedFilePublisher interface {

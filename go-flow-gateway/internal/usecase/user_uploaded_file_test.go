@@ -21,9 +21,9 @@ type MockUserUploadedFileEmailSender struct {
 	mock.Mock
 }
 
-func (m *MockUserUploadedFileRepo) Create(ctx context.Context, u entity.UserUploadedFile) error {
+func (m *MockUserUploadedFileRepo) Create(ctx context.Context, u entity.UserUploadedFile) (int, error) {
 	args := m.Called(ctx, u)
-	return args.Error(0)
+	return args.Int(0), args.Error(1)
 }
 
 func (m *MockUserUploadedFilePublisher) Publish(ctx context.Context, file entity.UserUploadedFile) error {
@@ -41,6 +41,11 @@ func (m *MockUserUploadedFileRepo) GetPaginatedFiles(ctx context.Context, lastID
 	return args.Get(0).([]entity.UserUploadedFile), args.Get(1).(int), args.Error(2)
 }
 
+func (m *MockUserUploadedFileRepo) UpdateEmailSent(ctx context.Context, id int) error {
+	args := m.Called(ctx, id)
+	return args.Error(0)
+}
+
 func TestUserUploadedFileUseCase_Create(t *testing.T) {
 	t.Run("Create user uploaded file successfully", func(t *testing.T) {
 		// Arrange
@@ -51,12 +56,13 @@ func TestUserUploadedFileUseCase_Create(t *testing.T) {
 		uc := NewUserUploadedFileUseCase(mockRepo, mockPub, mockSender)
 		ctx := context.Background()
 		userUploadedFile := entity.UserUploadedFile{
+			ID:      1,
 			Name:    "test.txt",
 			Size:    100,
 			Content: []byte("test"),
 			UserID:  123,
 		}
-		mockRepo.On("Create", ctx, userUploadedFile).Return(nil)
+		mockRepo.On("Create", ctx, userUploadedFile).Return(1, nil)
 		mockPub.On("Publish", ctx, userUploadedFile).Return(nil)
 
 		// Act
@@ -79,7 +85,7 @@ func TestUserUploadedFileUseCase_Create(t *testing.T) {
 		userUploadedFile := entity.UserUploadedFile{
 			UserID: 123,
 		}
-		mockRepo.On("Create", ctx, userUploadedFile).Return(assert.AnError)
+		mockRepo.On("Create", ctx, userUploadedFile).Return(0, assert.AnError)
 
 		// Act
 		result, err := uc.Create(ctx, userUploadedFile)
@@ -107,6 +113,8 @@ func TestUserUploadedFileUseCase_SendEmail(t *testing.T) {
 			UserID:         123,
 			EmailRecipient: "",
 		}
+
+		mockRepo.On("UpdateEmailSent", ctx, userUploadedFile.ID).Return(nil)
 		mockSender.On("Send", ctx, userUploadedFile).Return(nil)
 
 		// Act

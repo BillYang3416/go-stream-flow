@@ -16,29 +16,27 @@ func NewUserUploadedFileRepo(pg *postgres.Postgres) *UserUploadedFileRepo {
 	return &UserUploadedFileRepo{Postgres: pg}
 }
 
-func (r *UserUploadedFileRepo) Create(ctx context.Context, u entity.UserUploadedFile) error {
+func (r *UserUploadedFileRepo) Create(ctx context.Context, u entity.UserUploadedFile) (int, error) {
 	// Build the SQL query using squirrel
 	sql, args, err := r.Builder.
 		Insert("user_uploaded_files").
 		Columns("name", "size", "content", "user_id", "email_sent", "email_recipient").
 		Values(u.Name, u.Size, u.Content, u.UserID, u.EmailSent, u.EmailRecipient).
+		Suffix("RETURNING id").
 		ToSql()
 
 	if err != nil {
-		return fmt.Errorf("UserUploadedFileRepo - Save - r.Builder: %w", err)
+		return 0, fmt.Errorf("UserUploadedFileRepo - Save - r.Builder: %w", err)
 	}
 
 	// Execute the query using pgx
-	_, err = r.Pool.Exec(ctx, sql, args...)
+	var userUploadedFileID int
+	err = r.Pool.QueryRow(ctx, sql, args...).Scan(&userUploadedFileID)
 	if err != nil {
-		pgErrorChecker := postgres.NewPGErrorChecker()
-		if pgErrorChecker.IsUniqueViolation(err) {
-			return NewUniqueConstraintError("duplicate key", fmt.Sprintf("UserUploadedFileRepo - Save - r.Pool.Exec: %s", err.Error()))
-		}
-		return fmt.Errorf("UserUploadedFileRepo - Save - r.Pool.Exec: %w", err)
+		return 0, fmt.Errorf("UserUploadedFileRepo - Save - r.Pool.QueryRow: %w", err)
 	}
 
-	return nil
+	return userUploadedFileID, nil
 }
 
 func (r *UserUploadedFileRepo) GetPaginatedFiles(ctx context.Context, lastID, userID, limit int) ([]entity.UserUploadedFile, int, error) {
@@ -92,4 +90,26 @@ func (r *UserUploadedFileRepo) GetPaginatedFiles(ctx context.Context, lastID, us
 	}
 
 	return files, totalRecords, nil
+}
+
+func (r *UserUploadedFileRepo) UpdateEmailSent(ctx context.Context, id int) error {
+	// Build the SQL query using squirrel
+	sql, args, err := r.Builder.
+		Update("user_uploaded_files").
+		Set("email_sent", true).
+		Set("email_sent_at", "NOW()").
+		Where("id = ?", id).
+		ToSql()
+
+	if err != nil {
+		return fmt.Errorf("UserUploadedFileRepo - UpdateEmailSent - r.Builder: %w", err)
+	}
+
+	// Execute the query using pgx
+	_, err = r.Pool.Exec(ctx, sql, args...)
+	if err != nil {
+		return fmt.Errorf("UserUploadedFileRepo - UpdateEmailSent - r.Pool.Exec: %w", err)
+	}
+
+	return nil
 }
