@@ -47,8 +47,8 @@ type userProfileResponse struct {
 //	@Accept			json
 //	@Produce		json
 //	@Param			createUserProfileRequest	body		createUserProfileRequest	true	"user profile information"
-//	@Success		200						{object}	userProfileResponse
-//	@Failure		400						{object}	errorResponse
+//	@Success		200							{object}	userProfileResponse
+//	@Failure		400							{object}	errorResponse
 //	@Router			/user-profiles [post]
 func (r *userProfileRoutes) create(c *gin.Context) {
 	var request createUserProfileRequest
@@ -96,9 +96,9 @@ func (r *userProfileRoutes) create(c *gin.Context) {
 //	@Tags			User Profile
 //	@Accept			json
 //	@Produce		json
-//	@Param			userId	path	string	true	"user id"
-//	@Success		200						{object}	userProfileResponse
-//	@Failure		400						{object}	errorResponse
+//	@Param			userId	path		string	true	"user id"
+//	@Success		200		{object}	userProfileResponse
+//	@Failure		400		{object}	errorResponse
 //	@Router			/user-profiles/{userId} [get]
 func (r *userProfileRoutes) get(c *gin.Context) {
 	userId, err := strconv.Atoi(c.Param("userId"))

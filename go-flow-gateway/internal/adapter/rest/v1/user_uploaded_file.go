@@ -35,16 +35,16 @@ type createUserUploadedFileRequest struct {
 
 // create user uploaded file godoc
 //
-// @Summary		Create user uploaded file
-// @Description	Create user uploaded file
-// @Tags			User Uploaded File
-// @Accept			multipart/form-data
-// @Produce		json
-// @Param			emailRecipient	formData	string	true	"email recipient"
-// @Param			file			formData	file	true	"file"
-// @Success		204
-// @Failure		400						{object}	errorResponse
-// @Router			/user-uploaded-files [post]
+//	@Summary		Create user uploaded file
+//	@Description	Create user uploaded file
+//	@Tags			User Uploaded File
+//	@Accept			multipart/form-data
+//	@Produce		json
+//	@Param			emailRecipient	formData	string	true	"email recipient"
+//	@Param			file			formData	file	true	"file"
+//	@Success		204
+//	@Failure		400	{object}	errorResponse
+//	@Router			/user-uploaded-files [post]
 func (r *userUploadedFileRoutes) create(c *gin.Context) {
 	var request createUserUploadedFileRequest
 	if err := c.ShouldBind(&request); err != nil {
@@ -105,16 +105,16 @@ type getPaginatedFilesResponse struct {
 
 // get paginated files godoc
 //
-// @Summary		Get paginated files
-// @Description	Get paginated files
-// @Tags			User Uploaded File
-// @Accept			json
-// @Produce		json
-// @Param			lastID	query	int	false	"last id"
-// @Param			limit	query	int	false	"limit"
-// @Success		200						{object}	getPaginatedFilesResponse
-// @Failure		400						{object}	errorResponse
-// @Router			/user-uploaded-files [get]
+//	@Summary		Get paginated files
+//	@Description	Get paginated files
+//	@Tags			User Uploaded File
+//	@Accept			json
+//	@Produce		json
+//	@Param			lastID	query		int	false	"last id"
+//	@Param			limit	query		int	false	"limit"
+//	@Success		200		{object}	getPaginatedFilesResponse
+//	@Failure		400		{object}	errorResponse
+//	@Router			/user-uploaded-files [get]
 func (r *userUploadedFileRoutes) getPaginatedFiles(c *gin.Context) {
 	lastID, err := strconv.Atoi(c.Query("lastID"))
 	if err != nil {
