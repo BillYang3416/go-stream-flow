@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
   ChangeDetectorRef,
@@ -48,18 +49,19 @@ export class FileStatusComponent implements AfterViewInit {
 
   onPageChange(event: PageEvent) {
     const previousPageIndex = event.previousPageIndex || 0;
-    if (event.pageIndex > previousPageIndex) {
-      this.lastID = this.lastID + this.limit;
-    } else if (event.pageIndex < previousPageIndex) {
-      this.lastID = this.lastID - this.limit;
-    } else if (event.pageIndex === 0) {
+    if (event.pageIndex === 0) {
       this.lastID = 0;
     } else if (
       event.pageIndex ===
-      Math.ceil(event.length / event.pageSize) - 1
+      Math.ceil(this.resultsLength / event.pageSize) - 1
     ) {
-      this.lastID = event.length;
+      this.lastID = event.pageIndex * this.limit;
+    } else if (event.pageIndex > previousPageIndex) {
+      this.lastID = this.lastID + this.limit;
+    } else if (event.pageIndex < previousPageIndex) {
+      this.lastID = this.lastID - this.limit;
     }
+
     this.toggleSpinner();
     this.getFiles(this.lastID, this.limit);
     this.pageIndex = event.pageIndex;
@@ -83,9 +85,9 @@ export class FileStatusComponent implements AfterViewInit {
 
           this.toggleSpinner();
         },
-        error: (err) => {
+        error: (err: HttpErrorResponse) => {
           this.toggleSpinner();
-          this.snackBar.open('Failed to load data.', 'OK', { duration: 2000 });
+          this.snackBar.open(err.error.message, 'OK', { duration: 2000 });
         },
       });
   }
