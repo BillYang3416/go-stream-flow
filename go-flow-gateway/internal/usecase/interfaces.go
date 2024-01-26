@@ -49,9 +49,9 @@ type OAuthDetailRepo interface {
 }
 
 type UserCredential interface {
-	Create(context.Context, int, string, string) error
-	GetByUsername(context.Context, string) (entity.UserCredential, error)
-	Login(context.Context, string, string) (entity.UserCredential, error)
+	Register(ctx context.Context, displayName, username, password string) (int, error)
+	GetByUsername(ctx context.Context, username string) (entity.UserCredential, error)
+	Login(ctx context.Context, username, password string) (entity.UserCredential, error)
 }
 
 type UserCredentialRepo interface {
