@@ -5,43 +5,64 @@ import (
 	"fmt"
 
 	"github.com/bgg/go-flow-gateway/internal/entity"
+	"github.com/bgg/go-flow-gateway/internal/usecase/apperrors"
+	"github.com/bgg/go-flow-gateway/pkg/logger"
 )
 
 type UserCredentialUseCase struct {
-	repo   UserCredentialRepo
-	hasher PasswordHasher
+	repo        UserCredentialRepo
+	hasher      PasswordHasher
+	userProfile UserProfile
+	logger      logger.Logger
 }
 
-func NewUserCredentialUseCase(repo UserCredentialRepo, hasher PasswordHasher) *UserCredentialUseCase {
+func NewUserCredentialUseCase(repo UserCredentialRepo, hasher PasswordHasher, userProfile UserProfile, logger logger.Logger) *UserCredentialUseCase {
 	return &UserCredentialUseCase{
-		repo:   repo,
-		hasher: hasher,
+		repo:        repo,
+		hasher:      hasher,
+		userProfile: userProfile,
+		logger:      logger,
 	}
 }
 
-func (uc *UserCredentialUseCase) Create(ctx context.Context, userID int, username, password string) error {
+func (uc *UserCredentialUseCase) Register(ctx context.Context, displayName, username, password string) (int, error) {
 	_, err := uc.repo.GetByUsername(ctx, username)
 	if err == nil {
-		return fmt.Errorf("UserCredentialUseCase - Create - GetByUsername: has duplicate username")
+		uc.logger.Warn("UserCredentialUseCase - Register: duplicate username found", "username", username)
+		return 0, fmt.Errorf("UserCredentialUseCase - Register - GetByUsername: has duplicate username")
+	} else if err != nil && !apperrors.IsNoRowsAffectedError(err) {
+		uc.logger.Error("UserCredentialUseCase - Register - GetByUsername", "error", err)
+		return 0, fmt.Errorf("UserCredentialUseCase - Register - GetByUsername: %w", err)
 	}
+
+	up, err := uc.userProfile.Create(ctx, entity.UserProfile{
+		DisplayName: displayName,
+	})
+	if err != nil {
+		uc.logger.Error("UserCredentialUseCase - Register - userProfile.Create : error creating user profile", "error", err)
+		return 0, fmt.Errorf("UserCredentialUseCase - Register - userProfile.Create: %w", err)
+	}
+	uc.logger.Info("UserCredentialUseCase - Register - userProfile.Create: user profile created", "userID", up.UserID)
 
 	hashedPassword, err := uc.hasher.GenerateHash(ctx, password)
 	if err != nil {
-		return fmt.Errorf("UserCredentialUseCase - Create - hasher.GenerateHash: %w", err)
+		uc.logger.Error("UserCredentialUseCase - Register - hasher.GenerateHash: error generating hash", "error", err)
+		return 0, fmt.Errorf("UserCredentialUseCase - Register - hasher.GenerateHash: %w", err)
 	}
 
 	u := entity.UserCredential{
-		UserID:       userID,
+		UserID:       up.UserID,
 		Username:     username,
 		PasswordHash: hashedPassword,
 	}
-
 	err = uc.repo.Create(ctx, u)
 	if err != nil {
-		return fmt.Errorf("UserCredentialUseCase - Create: %w", err)
+		uc.logger.Error("UserCredentialUseCase - Register - repo.Create: error creating user credential", "error", err)
+		return 0, fmt.Errorf("UserCredentialUseCase - Register - repo.Create: %w", err)
 	}
 
-	return nil
+	uc.logger.Info("UserCredentialUseCase - Register: user registered", "userID", up.UserID)
+	return up.UserID, nil
 }
 
 func (uc *UserCredentialUseCase) GetByUsername(ctx context.Context, username string) (entity.UserCredential, error) {
