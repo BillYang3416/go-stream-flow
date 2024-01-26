@@ -14,23 +14,23 @@ import (
 	"github.com/bgg/go-flow-gateway/config"
 	"github.com/bgg/go-flow-gateway/internal/adapter/rest/token"
 	"github.com/bgg/go-flow-gateway/internal/entity"
-	"github.com/bgg/go-flow-gateway/internal/infra/repo"
 	"github.com/bgg/go-flow-gateway/internal/usecase"
+	"github.com/bgg/go-flow-gateway/internal/usecase/apperrors"
 	"github.com/bgg/go-flow-gateway/pkg/logger"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
 type authRoutes struct {
-	domainUrl string
-	u         usecase.UserProfile
-	l         logger.Logger
-	o         usecase.OAuthDetail
-	c         usecase.UserCredential
+	domainUrl      string
+	userProfile    usecase.UserProfile
+	logger         logger.Logger
+	oauthDetail    usecase.OAuthDetail
+	userCredential usecase.UserCredential
 }
 
 func NewAuthRoutes(cfg *config.Config, handler *gin.RouterGroup, u usecase.UserProfile, l logger.Logger, o usecase.OAuthDetail, c usecase.UserCredential) {
-	r := authRoutes{domainUrl: cfg.App.DomainUrl, u: u, l: l, o: o, c: c}
+	r := authRoutes{domainUrl: cfg.App.DomainUrl, userProfile: u, logger: l, oauthDetail: o, userCredential: c}
 	auth := handler.Group("/auth")
 	{
 		auth.POST("/register", r.register)
@@ -42,48 +42,43 @@ func NewAuthRoutes(cfg *config.Config, handler *gin.RouterGroup, u usecase.UserP
 }
 
 type RegisterRequest struct {
-	DisplayName string `json:"displayName"`
-	Username    string `json:"username"`
-	Password    string `json:"password"`
+	DisplayName string `json:"displayName" example:"billyang"`
+	Username    string `json:"username" binding:"required" example:"useraname"`
+	Password    string `json:"password" binding:"required" example:"password"`
+}
+
+type RegisterResponse struct {
+	UserID string `json:"userID" example:"userID"`
 }
 
 // register godoc
 //
-// @Summary Register
-// @Description Register
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param body body RegisterRequest true "body"
-// @Success 200 {string} string	"ok"
-// @Router /auth/register [post]
+//	@Summary		Register
+//	@Description	Register
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			RegisterRequest	body				RegisterRequest	true	"register information"
+//	@Success		200	{object}			RegisterResponse	"Succesfully registered"
+//	@Router			/auth/register [post]
 func (r *authRoutes) register(c *gin.Context) {
 	var req RegisterRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
-		sendErrorResponse(c, http.StatusBadRequest, err.Error())
+		r.logger.Warn("http - v1 - register: invalid request body", err)
+		sendErrorResponse(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	userProfile := entity.UserProfile{
-		DisplayName: req.DisplayName,
-	}
-
-	up, err := r.u.Create(c.Request.Context(), userProfile)
+	userID, err := r.userCredential.Register(c.Request.Context(), req.DisplayName, req.Username, req.Password)
 	if err != nil {
-		r.l.Error(err, "http - v1 - register")
-		sendErrorResponse(c, http.StatusInternalServerError, "internal server problems")
+		r.logger.Error("http - v1 - register: register failed", err)
+		sendErrorResponse(c, http.StatusInternalServerError, "Internal server error")
 		return
 	}
 
-	err = r.c.Create(c.Request.Context(), up.UserID, req.Username, req.Password)
-	if err != nil {
-		r.l.Error(err, "http - v1 - register")
-		sendErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	c.JSON(http.StatusOK, nil)
+	r.logger.Info("http - v1 - register: register successfully", "userID", userID)
+	c.JSON(http.StatusOK, RegisterResponse{UserID: fmt.Sprint(userID)})
 }
 
 type LoginRequest struct {
@@ -93,14 +88,14 @@ type LoginRequest struct {
 
 // login godoc
 //
-// @Summary Login
-// @Description Login
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param body body LoginRequest true "body"
-// @Success 200 {string} string	"ok"
-// @Router /auth/login [post]
+//	@Summary		Login
+//	@Description	Login
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		LoginRequest	true	"body"
+//	@Success		200		{string}	string			"ok"
+//	@Router			/auth/login [post]
 func (r *authRoutes) login(c *gin.Context) {
 	var req LoginRequest
 	err := c.ShouldBindJSON(&req)
@@ -109,7 +104,7 @@ func (r *authRoutes) login(c *gin.Context) {
 		return
 	}
 
-	uc, err := r.c.Login(c.Request.Context(), req.Username, req.Password)
+	uc, err := r.userCredential.Login(c.Request.Context(), req.Username, req.Password)
 	if err != nil {
 		sendErrorResponse(c, http.StatusInternalServerError, "login failed")
 		return
@@ -137,11 +132,11 @@ func generateState() string {
 
 // lineLogin godoc
 //
-// @Summary Line Login
-// @Description Redirect to Line Login
-// @Tags Auth
-// @Success 302 {string} string	"ok"
-// @Router /auth/line-login [get]
+//	@Summary		Line Login
+//	@Description	Redirect to Line Login
+//	@Tags			Auth
+//	@Success		302	{string}	string	"ok"
+//	@Router			/auth/line-login [get]
 func (r *authRoutes) lineLogin(c *gin.Context) {
 	state := generateState()
 	lineAuthUrl := fmt.Sprintf("https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=%s&redirect_uri=%s&state=%s&scope=profile%%20openid&nonce=%s",
@@ -156,12 +151,12 @@ func (r *authRoutes) lineLogin(c *gin.Context) {
 
 // lineCallback godoc
 //
-// @Summary Line Callback
-// @Description Handler the redirect from Line Login
-// @Tags Auth
-// @Param code query string true "code"
-// @Success 200 {string} string	"ok"
-// @Router /auth/line-callback [get]
+//	@Summary		Line Callback
+//	@Description	Handler the redirect from Line Login
+//	@Tags			Auth
+//	@Param			code	query		string	true	"code"
+//	@Success		200		{string}	string	"ok"
+//	@Router			/auth/line-callback [get]
 func (r *authRoutes) lineCallback(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {
@@ -182,19 +177,19 @@ func (r *authRoutes) lineCallback(c *gin.Context) {
 	}
 
 	// check the oauth detail is exists
-	od, err := r.o.GetByOAuthID(c.Request.Context(), lineUserProfile.Sub)
+	od, err := r.oauthDetail.GetByOAuthID(c.Request.Context(), lineUserProfile.Sub)
 	if err != nil {
 		// oauth detail is not found,then create a new oauth detail
-		if _, ok := repo.AsNoRowsAffectedError(err); ok {
+		if _, ok := apperrors.AsNoRowsAffectedError(err); ok {
 
 			userProfile := entity.UserProfile{
 				DisplayName: lineUserProfile.Name,
 				PictureURL:  lineUserProfile.Picture,
 			}
 
-			up, err := r.u.Create(c.Request.Context(), userProfile)
+			up, err := r.userProfile.Create(c.Request.Context(), userProfile)
 			if err != nil {
-				r.l.Error(err, "http - v1 - lineCallback")
+				r.logger.Error(err, "http - v1 - lineCallback")
 				sendErrorResponse(c, http.StatusInternalServerError, "internal server problems")
 				return
 			}
@@ -207,9 +202,9 @@ func (r *authRoutes) lineCallback(c *gin.Context) {
 				RefreshToken: tokens.RefreshToken,
 			}
 
-			err = r.o.Create(c.Request.Context(), oauthDetail)
+			err = r.oauthDetail.Create(c.Request.Context(), oauthDetail)
 			if err != nil {
-				r.l.Error(err, "http - v1 - lineCallback")
+				r.logger.Error(err, "http - v1 - lineCallback")
 				sendErrorResponse(c, http.StatusInternalServerError, "internal server problems")
 				return
 			}
@@ -217,7 +212,7 @@ func (r *authRoutes) lineCallback(c *gin.Context) {
 			// TODO: think about this way is good or not
 			od.UserID = up.UserID
 		} else {
-			r.l.Error(err, "http - v1 - lineCallback")
+			r.logger.Error(err, "http - v1 - lineCallback")
 			sendErrorResponse(c, http.StatusInternalServerError, "internal server problems")
 			return
 		}
@@ -225,9 +220,9 @@ func (r *authRoutes) lineCallback(c *gin.Context) {
 
 	// user profile already exists, update the refresh token from provider
 	if od.OAuthID == lineUserProfile.Sub {
-		err = r.o.UpdateRefreshToken(c.Request.Context(), lineUserProfile.Sub, tokens.RefreshToken)
+		err = r.oauthDetail.UpdateRefreshToken(c.Request.Context(), lineUserProfile.Sub, tokens.RefreshToken)
 		if err != nil {
-			r.l.Error(err, "http - v1 - lineCallback")
+			r.logger.Error(err, "http - v1 - lineCallback")
 			sendErrorResponse(c, http.StatusInternalServerError, "internal server problems")
 			return
 		}
@@ -296,11 +291,11 @@ func (r *authRoutes) exchangeCodeForTokens(code string) (*TokenResponse, error) 
 
 // logout godoc
 //
-// @Summary Logout
-// @Description Logout
-// @Tags Auth
-// @Success 200 {string} string	"ok"
-// @Router /auth/logout [get]
+//	@Summary		Logout
+//	@Description	Logout
+//	@Tags			Auth
+//	@Success		200	{string}	string	"ok"
+//	@Router			/auth/logout [get]
 func (r *authRoutes) logout(c *gin.Context) {
 	session := sessions.Default(c)
 	session.Delete("userID")
