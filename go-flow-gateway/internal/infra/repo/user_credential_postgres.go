@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/bgg/go-flow-gateway/internal/entity"
+	"github.com/bgg/go-flow-gateway/internal/usecase/apperrors"
 	"github.com/bgg/go-flow-gateway/pkg/postgres"
 )
 
@@ -32,7 +33,7 @@ func (r *UserCredentialRepo) Create(ctx context.Context, u entity.UserCredential
 	if err != nil {
 		pgErrorChecker := postgres.NewPGErrorChecker()
 		if pgErrorChecker.IsUniqueViolation(err) {
-			return NewUniqueConstraintError("duplicate key", fmt.Sprintf("UserCredentialRepo - Create - r.Pool.Exec: %s", err.Error()))
+			return apperrors.NewUniqueConstraintError("duplicate key", fmt.Sprintf("UserCredentialRepo - Create - r.Pool.Exec: %s", err.Error()))
 		}
 		return fmt.Errorf("UserCredentialRepo - Create - r.Pool.Exec: %w", err)
 	}
@@ -53,7 +54,7 @@ func (r *UserCredentialRepo) GetByUsername(ctx context.Context, username string)
 	if err != nil {
 		pgErrorChecker := postgres.NewPGErrorChecker()
 		if pgErrorChecker.IsNoRows(err) {
-			return entity.UserCredential{}, NewNoRowsAffectedError("user credential not found", fmt.Sprintf("UserCredentialRepo - GetByUsername - r.Pool.QueryRow: %s", err.Error()))
+			return entity.UserCredential{}, apperrors.NewNoRowsAffectedError("user credential not found", fmt.Sprintf("UserCredentialRepo - GetByUsername - r.Pool.QueryRow: %s", err.Error()))
 		}
 		return entity.UserCredential{}, fmt.Errorf("UserCredentialRepo - GetByUsername - r.Pool.QueryRow: %w", err)
 	}

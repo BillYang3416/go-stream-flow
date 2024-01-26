@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/bgg/go-flow-gateway/internal/entity"
+	"github.com/bgg/go-flow-gateway/internal/usecase/apperrors"
 	"github.com/bgg/go-flow-gateway/pkg/postgres"
 )
 
@@ -35,7 +36,7 @@ func (r *UserProfileRepo) Create(ctx context.Context, u entity.UserProfile) (ent
 	if err != nil {
 		pgErrorChecker := postgres.NewPGErrorChecker()
 		if pgErrorChecker.IsUniqueViolation(err) {
-			return entity.UserProfile{}, NewUniqueConstraintError("duplicate key", fmt.Sprintf("UserProfileRepo - Create - r.Pool.Exec: %s", err.Error()))
+			return entity.UserProfile{}, apperrors.NewUniqueConstraintError("duplicate key", fmt.Sprintf("UserProfileRepo - Create - r.Pool.Exec: %s", err.Error()))
 		}
 		return entity.UserProfile{}, fmt.Errorf("UserProfileRepo - Create - r.Pool.Exec: %w", err)
 	}
@@ -58,7 +59,7 @@ func (r *UserProfileRepo) GetByID(ctx context.Context, userId int) (entity.UserP
 	if err != nil {
 		pgErrorChecker := postgres.NewPGErrorChecker()
 		if pgErrorChecker.IsNoRows(err) {
-			return entity.UserProfile{}, NewNoRowsAffectedError("user profile not found", fmt.Sprintf("UserProfileRepo - GetByID - row.Scan: %s", err.Error()))
+			return entity.UserProfile{}, apperrors.NewNoRowsAffectedError("user profile not found", fmt.Sprintf("UserProfileRepo - GetByID - row.Scan: %s", err.Error()))
 		}
 		return entity.UserProfile{}, fmt.Errorf("UserProfileRepo - GetByID - row.Scan: %w", err)
 	}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/bgg/go-flow-gateway/internal/entity"
+	"github.com/bgg/go-flow-gateway/internal/usecase/apperrors"
 	"github.com/bgg/go-flow-gateway/pkg/postgres"
 )
 
@@ -27,12 +28,11 @@ func (r *OAuthDetailRepo) Create(ctx context.Context, u entity.OAuthDetail) erro
 	if err != nil {
 		return fmt.Errorf("OAuthDetailRepo - Create - r.Builder: %w", err)
 	}
-
 	_, err = r.Pool.Exec(ctx, sql, args...)
 	if err != nil {
 		pgErrorChecker := postgres.NewPGErrorChecker()
 		if pgErrorChecker.IsUniqueViolation(err) {
-			return NewUniqueConstraintError("duplicate key", fmt.Sprintf("OAuthDetailRepo - Create - r.Pool.Exec: %s", err.Error()))
+			return apperrors.NewUniqueConstraintError("duplicate key", fmt.Sprintf("OAuthDetailRepo - Create - r.Pool.Exec: %s", err.Error()))
 		}
 		return fmt.Errorf("OAuthDetailRepo - Create - r.Pool.Exec: %w", err)
 	}
@@ -78,7 +78,7 @@ func (r *OAuthDetailRepo) GetByOAuthID(ctx context.Context, oauthId string) (ent
 	if err != nil {
 		pgErrorChecker := postgres.NewPGErrorChecker()
 		if pgErrorChecker.IsNoRows(err) {
-			return entity.OAuthDetail{}, NewNoRowsAffectedError("oauth detail not found", fmt.Sprintf("OAuthDetailRepo - GetByOAuthID - row.Scan: %s", err.Error()))
+			return entity.OAuthDetail{}, apperrors.NewNoRowsAffectedError("oauth detail not found", fmt.Sprintf("OAuthDetailRepo - GetByOAuthID - row.Scan: %s", err.Error()))
 		}
 		return entity.OAuthDetail{}, fmt.Errorf("OAuthDetailRepo - GetByOAuthID - row.Scan: %w", err)
 	}
