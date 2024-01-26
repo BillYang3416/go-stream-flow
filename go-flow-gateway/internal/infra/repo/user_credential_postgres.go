@@ -6,15 +6,17 @@ import (
 
 	"github.com/bgg/go-flow-gateway/internal/entity"
 	"github.com/bgg/go-flow-gateway/internal/usecase/apperrors"
+	"github.com/bgg/go-flow-gateway/pkg/logger"
 	"github.com/bgg/go-flow-gateway/pkg/postgres"
 )
 
 type UserCredentialRepo struct {
 	*postgres.Postgres
+	logger logger.Logger
 }
 
-func NewUserCredentialRepo(pg *postgres.Postgres) *UserCredentialRepo {
-	return &UserCredentialRepo{Postgres: pg}
+func NewUserCredentialRepo(pg *postgres.Postgres, logger logger.Logger) *UserCredentialRepo {
+	return &UserCredentialRepo{Postgres: pg, logger: logger}
 }
 
 func (r *UserCredentialRepo) Create(ctx context.Context, u entity.UserCredential) error {
@@ -26,18 +28,21 @@ func (r *UserCredentialRepo) Create(ctx context.Context, u entity.UserCredential
 		ToSql()
 
 	if err != nil {
+		r.logger.Error("UserCredentialRepo - Create - r.Builder: failed to build query", "error", err)
 		return fmt.Errorf("UserCredentialRepo - Create - r.Builder: %w", err)
 	}
 
 	_, err = r.Pool.Exec(ctx, sql, args...)
 	if err != nil {
+		r.logger.Error("UserCredentialRepo - Create - r.Pool.Exec : failed to execute query", "sql", sql, "error", err)
 		pgErrorChecker := postgres.NewPGErrorChecker()
 		if pgErrorChecker.IsUniqueViolation(err) {
-			return apperrors.NewUniqueConstraintError("duplicate key", fmt.Sprintf("UserCredentialRepo - Create - r.Pool.Exec: %s", err.Error()))
+			return apperrors.NewUniqueConstraintError("duplicate key", "username", u.Username)
 		}
 		return fmt.Errorf("UserCredentialRepo - Create - r.Pool.Exec: %w", err)
 	}
 
+	r.logger.Info("UserCredentialRepo - Create - user credential created successfully", "username", u.Username)
 	return nil
 }
 
