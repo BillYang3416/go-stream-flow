@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/bgg/go-flow-gateway/internal/entity"
-	"github.com/bgg/go-flow-gateway/internal/infra/repo"
 	"github.com/bgg/go-flow-gateway/internal/usecase"
+	"github.com/bgg/go-flow-gateway/internal/usecase/apperrors"
 	"github.com/bgg/go-flow-gateway/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -73,7 +73,7 @@ func (r *userProfileRoutes) create(c *gin.Context) {
 
 	if err != nil {
 		r.l.Error(err, "http - v1 - create")
-		if repo.IsUniqueConstraintError(err) {
+		if apperrors.IsUniqueConstraintError(err) {
 			sendErrorResponse(c, http.StatusConflict, "a user profile with the same user id already exists")
 		} else {
 			sendErrorResponse(c, http.StatusInternalServerError, "internal server problems")
