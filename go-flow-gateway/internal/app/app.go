@@ -96,6 +96,8 @@ func Run(cfg *config.Config) {
 	userCredentialUseCase := usecase.NewUserCredentialUseCase(
 		repo.NewUserCredentialRepo(pg),
 		utils.NewBcryptHasher(),
+		userProfileUseCase,
+		l,
 	)
 
 	// HTTP Server
