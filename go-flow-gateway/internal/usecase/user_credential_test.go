@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/bgg/go-flow-gateway/internal/entity"
+	"github.com/bgg/go-flow-gateway/internal/usecase/apperrors"
+	"github.com/bgg/go-flow-gateway/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -17,8 +19,12 @@ type MockPasswordHasher struct {
 	mock.Mock
 }
 
-func (m *MockUserCredentialRepo) Create(ctx context.Context, u entity.UserCredential) error {
-	args := m.Called(ctx, u)
+type MockUserProfileUseCase struct {
+	mock.Mock
+}
+
+func (m *MockUserCredentialRepo) Create(ctx context.Context, userCredential entity.UserCredential) error {
+	args := m.Called(ctx, userCredential)
 	return args.Error(0)
 }
 
@@ -37,53 +43,91 @@ func (m *MockPasswordHasher) CompareHash(ctx context.Context, password, hashedPa
 	return args.Error(0)
 }
 
-func TestUserCredentialUsecase_Create(t *testing.T) {
+func (m *MockUserProfileUseCase) Create(ctx context.Context, userProfile entity.UserProfile) (entity.UserProfile, error) {
+	args := m.Called(ctx, userProfile)
+	return args.Get(0).(entity.UserProfile), args.Error(1)
+}
 
-	t.Run("Create user credential successfully", func(t *testing.T) {
+func (m *MockUserProfileUseCase) GetByID(ctx context.Context, userID int) (entity.UserProfile, error) {
+	args := m.Called(ctx, userID)
+	return args.Get(0).(entity.UserProfile), args.Error(1)
+}
 
-		mockRepo := new(MockUserCredentialRepo)
-		mockHasher := new(MockPasswordHasher)
-		uc := NewUserCredentialUseCase(mockRepo, mockHasher)
+func setupUserCredentialUsecase(t *testing.T) (UserCredential, *MockUserCredentialRepo, *MockPasswordHasher, *MockUserProfileUseCase) {
+	mockRepo := new(MockUserCredentialRepo)
+	mockHasher := new(MockPasswordHasher)
+	mockUserProfileUseCase := new(MockUserProfileUseCase)
+	uc := NewUserCredentialUseCase(mockRepo, mockHasher, mockUserProfileUseCase, logger.New("debug"))
+	return uc, mockRepo, mockHasher, mockUserProfileUseCase
+}
+
+func TestUserCredentialUsecase_Register(t *testing.T) {
+
+	const (
+		displayName    = "hank"
+		username       = "test"
+		password       = "test"
+		hashedPassword = "$2a$10"
+		userID         = 123
+	)
+
+	t.Run("user registered successfully", func(t *testing.T) {
+
+		uc, mockRepo, mockHasher, mockUserProfileUseCase := setupUserCredentialUsecase(t)
+
 		ctx := context.Background()
 
-		password := "test"
-		hashedPassword := "$2a$10"
-		mockHasher.On("GenerateHash", ctx, password).Return(hashedPassword, nil)
-
 		userCredential := entity.UserCredential{
-			UserID:       123,
-			Username:     "test",
+			UserID:       userID,
+			Username:     username,
 			PasswordHash: hashedPassword,
 		}
-		mockRepo.On("GetByUsername", ctx, userCredential.Username).Return(entity.UserCredential{}, assert.AnError)
+
+		mockRepo.On("GetByUsername", ctx, username).Return(entity.UserCredential{}, apperrors.NewNoRowsAffectedError("test", "test"))
+		mockUserProfileUseCase.On("Create", ctx, entity.UserProfile{
+			DisplayName: displayName,
+		}).Return(entity.UserProfile{
+			UserID: userID,
+		}, nil)
+		mockHasher.On("GenerateHash", ctx, password).Return(hashedPassword, nil)
 		mockRepo.On("Create", ctx, userCredential).Return(nil)
 
-		err := uc.Create(ctx, userCredential.UserID, userCredential.Username, password)
+		gotUserID, err := uc.Register(ctx, displayName, username, password)
 
 		assert.NoError(t, err)
+		assert.Equal(t, userID, gotUserID)
+		mockUserProfileUseCase.AssertExpectations(t)
 		mockRepo.AssertExpectations(t)
+		mockHasher.AssertExpectations(t)
 	})
 
 	t.Run("Create user credential with invalid input", func(t *testing.T) {
 
-		mockRepo := new(MockUserCredentialRepo)
-		mockHasher := new(MockPasswordHasher)
-		uc := NewUserCredentialUseCase(mockRepo, mockHasher)
+		uc, mockRepo, mockHasher, mockUserProfileUseCase := setupUserCredentialUsecase(t)
+
 		ctx := context.Background()
-		password := "test"
-		hashedPassword := "$2a$10"
-		mockHasher.On("GenerateHash", ctx, password).Return(hashedPassword, nil)
 
 		userCredential := entity.UserCredential{
+			UserID:       userID,
+			Username:     username,
 			PasswordHash: hashedPassword,
 		}
-		mockRepo.On("GetByUsername", ctx, userCredential.Username).Return(entity.UserCredential{}, assert.AnError)
+
+		mockRepo.On("GetByUsername", ctx, username).Return(entity.UserCredential{}, apperrors.NewNoRowsAffectedError("test", "test"))
+		mockUserProfileUseCase.On("Create", ctx, entity.UserProfile{
+			DisplayName: displayName,
+		}).Return(entity.UserProfile{
+			UserID: userID,
+		}, nil)
+		mockHasher.On("GenerateHash", ctx, password).Return(hashedPassword, nil)
 		mockRepo.On("Create", ctx, userCredential).Return(assert.AnError)
 
-		err := uc.Create(ctx, userCredential.UserID, userCredential.Username, password)
+		_, err := uc.Register(ctx, displayName, username, password)
 
 		assert.Error(t, err)
+		mockUserProfileUseCase.AssertExpectations(t)
 		mockRepo.AssertExpectations(t)
+		mockHasher.AssertExpectations(t)
 	})
 }
 
@@ -93,7 +137,8 @@ func TestUserCredentialUsecase_GetByUsername(t *testing.T) {
 
 		mockRepo := new(MockUserCredentialRepo)
 		mockHasher := new(MockPasswordHasher)
-		uc := NewUserCredentialUseCase(mockRepo, mockHasher)
+		mockUserProfileUseCase := new(MockUserProfileUseCase)
+		uc := NewUserCredentialUseCase(mockRepo, mockHasher, mockUserProfileUseCase, logger.New("debug"))
 		ctx := context.Background()
 
 		userCredential := entity.UserCredential{
@@ -114,7 +159,8 @@ func TestUserCredentialUsecase_GetByUsername(t *testing.T) {
 
 		mockRepo := new(MockUserCredentialRepo)
 		mockHasher := new(MockPasswordHasher)
-		uc := NewUserCredentialUseCase(mockRepo, mockHasher)
+		mockUserProfileUseCase := new(MockUserProfileUseCase)
+		uc := NewUserCredentialUseCase(mockRepo, mockHasher, mockUserProfileUseCase, logger.New("debug"))
 		ctx := context.Background()
 
 		userCredential := entity.UserCredential{
@@ -138,7 +184,8 @@ func TestUserCredentialUsecase_Login(t *testing.T) {
 
 		mockRepo := new(MockUserCredentialRepo)
 		mockHasher := new(MockPasswordHasher)
-		uc := NewUserCredentialUseCase(mockRepo, mockHasher)
+		mockUserProfileUseCase := new(MockUserProfileUseCase)
+		uc := NewUserCredentialUseCase(mockRepo, mockHasher, mockUserProfileUseCase, logger.New("debug"))
 		ctx := context.Background()
 
 		userCredential := entity.UserCredential{
@@ -160,7 +207,8 @@ func TestUserCredentialUsecase_Login(t *testing.T) {
 
 		mockRepo := new(MockUserCredentialRepo)
 		mockHasher := new(MockPasswordHasher)
-		uc := NewUserCredentialUseCase(mockRepo, mockHasher)
+		mockUserProfileUseCase := new(MockUserProfileUseCase)
+		uc := NewUserCredentialUseCase(mockRepo, mockHasher, mockUserProfileUseCase, logger.New("debug"))
 		ctx := context.Background()
 
 		userCredential := entity.UserCredential{
