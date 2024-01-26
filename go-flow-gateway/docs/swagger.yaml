@@ -37,10 +37,22 @@ definitions:
   v1.RegisterRequest:
     properties:
       displayName:
+        example: billyang
         type: string
       password:
+        example: password
         type: string
       username:
+        example: useraname
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  v1.RegisterResponse:
+    properties:
+      userID:
+        example: userID
         type: string
     type: object
   v1.createUserProfileRequest:
@@ -156,9 +168,9 @@ paths:
       - application/json
       description: Register
       parameters:
-      - description: body
+      - description: register information
         in: body
-        name: body
+        name: RegisterRequest
         required: true
         schema:
           $ref: '#/definitions/v1.RegisterRequest'
@@ -166,9 +178,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: ok
+          description: Succesfully registered
           schema:
-            type: string
+            $ref: '#/definitions/v1.RegisterResponse'
       summary: Register
       tags:
       - Auth

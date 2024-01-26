@@ -124,8 +124,8 @@ const docTemplate = `{
                 "summary": "Register",
                 "parameters": [
                     {
-                        "description": "body",
-                        "name": "body",
+                        "description": "register information",
+                        "name": "RegisterRequest",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -135,9 +135,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "ok",
+                        "description": "Succesfully registered",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/v1.RegisterResponse"
                         }
                     }
                 }
@@ -358,15 +358,31 @@ const docTemplate = `{
         },
         "v1.RegisterRequest": {
             "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
             "properties": {
                 "displayName": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "billyang"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "password"
                 },
                 "username": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "useraname"
+                }
+            }
+        },
+        "v1.RegisterResponse": {
+            "type": "object",
+            "properties": {
+                "userID": {
+                    "type": "string",
+                    "example": "userID"
                 }
             }
         },
