@@ -66,6 +66,6 @@ type UserCredentialRepo interface {
 }
 
 type PasswordHasher interface {
-	GenerateHash(context.Context, string) (string, error)
-	CompareHash(context.Context, string, string) error
+	GenerateHash(ctx context.Context, password string) (string, error)
+	CompareHash(ctx context.Context, password, hashedPassword string) error
 }
