@@ -54,6 +54,7 @@ func (m *MockUserProfileUseCase) GetByID(ctx context.Context, userID int) (entit
 }
 
 func setupUserCredentialUsecase(t *testing.T) (UserCredential, *MockUserCredentialRepo, *MockPasswordHasher, *MockUserProfileUseCase) {
+	t.Helper()
 	mockRepo := new(MockUserCredentialRepo)
 	mockHasher := new(MockPasswordHasher)
 	mockUserProfileUseCase := new(MockUserProfileUseCase)
