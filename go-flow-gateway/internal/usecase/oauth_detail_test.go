@@ -5,11 +5,18 @@ import (
 	"testing"
 
 	"github.com/bgg/go-flow-gateway/internal/entity"
+	"github.com/bgg/go-flow-gateway/internal/usecase/apperrors"
+	"github.com/bgg/go-flow-gateway/internal/usecase/dto"
+	"github.com/bgg/go-flow-gateway/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 type MockOAuthDetailRepo struct {
+	mock.Mock
+}
+
+type MockTokenService struct {
 	mock.Mock
 }
 
@@ -28,43 +35,129 @@ func (m *MockOAuthDetailRepo) GetByOAuthID(ctx context.Context, oauthId string) 
 	return args.Get(0).(entity.OAuthDetail), args.Error(1)
 }
 
-func TestOAuthDetailUsecase_Create(t *testing.T) {
+func (m *MockTokenService) ExchangeCodeForTokens(code, domainUrl string) (*dto.TokenResponse, error) {
+	args := m.Called(code, domainUrl)
+	return args.Get(0).(*dto.TokenResponse), args.Error(1)
+}
+
+func (m *MockTokenService) VerifyIDToken(idToken, clientID string) (*dto.LineUserProfile, error) {
+	args := m.Called(idToken, clientID)
+	return args.Get(0).(*dto.LineUserProfile), args.Error(1)
+}
+
+func setupOAuthDetailUsecase(t *testing.T) (*OAuthDetailUseCase, *MockOAuthDetailRepo, *MockUserProfileUseCase, *MockTokenService) {
+	t.Helper()
+	mockRepo := new(MockOAuthDetailRepo)
+	mockUserProfileUseCase := new(MockUserProfileUseCase)
+	mockTokenService := new(MockTokenService)
+
+	uc := NewOAuthDetailUseCase(mockRepo, mockUserProfileUseCase, logger.New("debug"), mockTokenService)
+	return uc, mockRepo, mockUserProfileUseCase, mockTokenService
+}
+
+func TestOAuthDetailUsecase_HandleOAuthCallback(t *testing.T) {
+
+	const (
+		code         = "testcode"
+		domainURL    = "https://example.com/callback"
+		clientID     = "testclientid"
+		userID       = 1
+		provider     = "line"
+		idToken      = "testidtoken"
+		expiresIn    = 3600
+		accessToken  = "testaccesstoken"
+		refreshToken = "testrefreshtoken"
+		sub          = "testsub"
+		displayName  = "Test User"
+		pictureURL   = "https://example.com/profile.jpg"
+	)
 
 	t.Run("Create oauth detail successfully", func(t *testing.T) {
 
-		mockRepo := new(MockOAuthDetailRepo)
-		uc := NewOAuthDetailUseCase(mockRepo)
+		uc, mockRepo, mockUserProfileUseCase, mockTokenService := setupOAuthDetailUsecase(t)
+
 		ctx := context.Background()
 
-		oauthDetail := entity.OAuthDetail{
-			UserID:       123,
-			Provider:     "line",
-			AccessToken:  "123",
-			RefreshToken: "123",
+		oAuthDetail := entity.OAuthDetail{
+			OAuthID:      sub,
+			UserID:       userID,
+			Provider:     provider,
+			AccessToken:  accessToken,
+			RefreshToken: refreshToken,
 		}
 
-		mockRepo.On("Create", ctx, oauthDetail).Return(nil)
+		mockTokenService.On("ExchangeCodeForTokens", code, domainURL).Return(&dto.TokenResponse{
+			IDToken:      idToken,
+			ExpiresIn:    expiresIn,
+			AccessToken:  accessToken,
+			RefreshToken: refreshToken,
+		}, nil)
+		mockTokenService.On("VerifyIDToken", idToken, clientID).Return(&dto.LineUserProfile{
+			Sub:     sub,
+			Name:    displayName,
+			Picture: pictureURL,
+		}, nil)
+		mockRepo.On("GetByOAuthID", ctx, sub).Return(entity.OAuthDetail{}, apperrors.NewNoRowsAffectedError("test", "test"))
 
-		err := uc.Create(ctx, oauthDetail)
+		mockUserProfileUseCase.On("Create", ctx, entity.UserProfile{
+			DisplayName: displayName,
+			PictureURL:  pictureURL,
+		}).Return(entity.UserProfile{
+			UserID: userID,
+		}, nil)
+
+		mockRepo.On("Create", ctx, oAuthDetail).Return(nil)
+
+		gotOAuthDetail, err := uc.HandleOAuthCallback(ctx, code, domainURL, provider, clientID)
 
 		assert.NoError(t, err)
+		assert.Equal(t, oAuthDetail, gotOAuthDetail)
 		mockRepo.AssertExpectations(t)
+		mockUserProfileUseCase.AssertExpectations(t)
+		mockTokenService.AssertExpectations(t)
 	})
 
 	t.Run("Create oauth detail with invalid input", func(t *testing.T) {
 
-		mockRepo := new(MockOAuthDetailRepo)
-		uc := NewOAuthDetailUseCase(mockRepo)
+		uc, mockRepo, mockUserProfileUseCase, mockTokenService := setupOAuthDetailUsecase(t)
 		ctx := context.Background()
 
-		oauthDetail := entity.OAuthDetail{}
+		oAuthDetail := entity.OAuthDetail{
+			OAuthID:      sub,
+			UserID:       userID,
+			Provider:     provider,
+			AccessToken:  accessToken,
+			RefreshToken: refreshToken,
+		}
 
-		mockRepo.On("Create", ctx, oauthDetail).Return(assert.AnError)
+		mockTokenService.On("ExchangeCodeForTokens", code, domainURL).Return(&dto.TokenResponse{
+			IDToken:      idToken,
+			ExpiresIn:    expiresIn,
+			AccessToken:  accessToken,
+			RefreshToken: refreshToken,
+		}, nil)
+		mockTokenService.On("VerifyIDToken", idToken, clientID).Return(&dto.LineUserProfile{
+			Sub:     sub,
+			Name:    displayName,
+			Picture: pictureURL,
+		}, nil)
+		mockRepo.On("GetByOAuthID", ctx, sub).Return(entity.OAuthDetail{}, apperrors.NewNoRowsAffectedError("test", "test"))
 
-		err := uc.Create(ctx, oauthDetail)
+		mockUserProfileUseCase.On("Create", ctx, entity.UserProfile{
+			DisplayName: displayName,
+			PictureURL:  pictureURL,
+		}).Return(entity.UserProfile{
+			UserID: userID,
+		}, nil)
+
+		mockRepo.On("Create", ctx, oAuthDetail).Return(assert.AnError)
+
+		_, err := uc.HandleOAuthCallback(ctx, code, domainURL, provider, clientID)
 
 		assert.Error(t, err)
 		mockRepo.AssertExpectations(t)
+		mockUserProfileUseCase.AssertExpectations(t)
+		mockTokenService.AssertExpectations(t)
 	})
 }
 
@@ -72,8 +165,7 @@ func TestOAuthDetailUsecase_UpdateRefreshToken(t *testing.T) {
 
 	t.Run("Update refresh token successfully", func(t *testing.T) {
 
-		mockRepo := new(MockOAuthDetailRepo)
-		uc := NewOAuthDetailUseCase(mockRepo)
+		uc, mockRepo, _, _ := setupOAuthDetailUsecase(t)
 		ctx := context.Background()
 
 		userId := "123"
@@ -89,8 +181,7 @@ func TestOAuthDetailUsecase_UpdateRefreshToken(t *testing.T) {
 
 	t.Run("Update refresh token with invalid input", func(t *testing.T) {
 
-		mockRepo := new(MockOAuthDetailRepo)
-		uc := NewOAuthDetailUseCase(mockRepo)
+		uc, mockRepo, _, _ := setupOAuthDetailUsecase(t)
 		ctx := context.Background()
 
 		userId := ""
@@ -108,8 +199,7 @@ func TestOAuthDetailUsecase_UpdateRefreshToken(t *testing.T) {
 func TestOAuthDetailUsecase_GetByOAuthID(t *testing.T) {
 	t.Run("Get oauth detail by id successfully", func(t *testing.T) {
 
-		mockRepo := new(MockOAuthDetailRepo)
-		uc := NewOAuthDetailUseCase(mockRepo)
+		uc, mockRepo, _, _ := setupOAuthDetailUsecase(t)
 		ctx := context.Background()
 
 		oauthDetail := entity.OAuthDetail{
@@ -130,8 +220,7 @@ func TestOAuthDetailUsecase_GetByOAuthID(t *testing.T) {
 	})
 	t.Run("Get oauth detail by id with invalid oauth ID", func(t *testing.T) {
 
-		mockRepo := new(MockOAuthDetailRepo)
-		uc := NewOAuthDetailUseCase(mockRepo)
+		uc, mockRepo, _, _ := setupOAuthDetailUsecase(t)
 		ctx := context.Background()
 
 		mockRepo.On("GetByOAuthID", ctx, "123").Return(entity.OAuthDetail{}, assert.AnError)
