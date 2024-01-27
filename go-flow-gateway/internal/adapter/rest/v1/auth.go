@@ -73,7 +73,7 @@ func (r *authRoutes) register(c *gin.Context) {
 	userID, err := r.userCredential.Register(c.Request.Context(), req.DisplayName, req.Username, req.Password)
 	if err != nil {
 		r.logger.Error("http - v1 - register: register failed", err)
-		sendErrorResponse(c, http.StatusInternalServerError, "Internal server error")
+		sendErrorResponse(c, http.StatusInternalServerError, "register failed")
 		return
 	}
 
@@ -82,8 +82,8 @@ func (r *authRoutes) register(c *gin.Context) {
 }
 
 type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username" example:"username" binding:"required"`
+	Password string `json:"password" example:"password" binding:"required"`
 }
 
 // login godoc
@@ -93,20 +93,22 @@ type LoginRequest struct {
 //	@Tags			Auth
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body		LoginRequest	true	"body"
-//	@Success		200		{string}	string			"ok"
+//	@Param			LoginRequest	body		LoginRequest	true	"login information"
+//	@Success		204		{object}	nil "No content"
 //	@Router			/auth/login [post]
 func (r *authRoutes) login(c *gin.Context) {
 	var req LoginRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
+		r.logger.Error("http - v1 - login: invalid request body", err)
 		sendErrorResponse(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
 	uc, err := r.userCredential.Login(c.Request.Context(), req.Username, req.Password)
 	if err != nil {
-		sendErrorResponse(c, http.StatusInternalServerError, "login failed")
+		r.logger.Error("http - v1 - login: login failed", err)
+		sendErrorResponse(c, http.StatusUnauthorized, "login failed")
 		return
 	}
 
@@ -114,11 +116,12 @@ func (r *authRoutes) login(c *gin.Context) {
 	session.Set("userID", uc.UserID)
 	err = session.Save()
 	if err != nil {
-		sendErrorResponse(c, http.StatusInternalServerError, err.Error())
+		r.logger.Error("http - v1 - login: failed to save session", err)
+		sendErrorResponse(c, http.StatusInternalServerError, "login failed")
 		return
 	}
 
-	c.JSON(http.StatusOK, nil)
+	c.JSON(http.StatusNoContent, nil)
 }
 
 // generateState godoc
