@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/auth/line-callback": {
             "get": {
-                "description": "Handler the redirect from Line Login",
+                "description": "Handler the redirect from Line Login and set user session",
                 "tags": [
                     "Auth"
                 ],
@@ -25,15 +25,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "code",
+                        "description": "Authorization code returned from Line Login",
                         "name": "code",
                         "in": "query",
                         "required": true
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "ok",
+                    "302": {
+                        "description": "Redirect URL",
                         "schema": {
                             "type": "string"
                         }
@@ -44,13 +44,16 @@ const docTemplate = `{
         "/auth/line-login": {
             "get": {
                 "description": "Redirect to Line Login",
+                "produces": [
+                    "text/html"
+                ],
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Line Login",
                 "responses": {
                     "302": {
-                        "description": "ok",
+                        "description": "Redirect URL",
                         "schema": {
                             "type": "string"
                         }
@@ -97,11 +100,8 @@ const docTemplate = `{
                 ],
                 "summary": "Logout",
                 "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
+                    "204": {
+                        "description": "No content"
                     }
                 }
             }

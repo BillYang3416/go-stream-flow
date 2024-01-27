@@ -2,6 +2,7 @@ package v1
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/bgg/go-flow-gateway/config"
 	"github.com/bgg/go-flow-gateway/internal/usecase"
@@ -24,7 +25,7 @@ func NewRouter(cfg *config.Config, handler *gin.Engine, l logger.Logger, u useca
 	h := handler.Group("/api/v1")
 	{
 		NewUserProfileRoutes(h, u, l)
-		NewAuthRoutes(cfg, h, u, l, o, c)
+		NewAuthRoutes(cfg, h, u, l, o, c, os.Getenv("LINE_CHANNEL_ID"))
 		NewUserUploadedFileRoutes(h, uu, l)
 	}
 

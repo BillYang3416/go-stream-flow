@@ -21,10 +21,11 @@ type authRoutes struct {
 	logger         logger.Logger
 	oauthDetail    usecase.OAuthDetail
 	userCredential usecase.UserCredential
+	lineChannelID  string
 }
 
-func NewAuthRoutes(cfg *config.Config, handler *gin.RouterGroup, u usecase.UserProfile, l logger.Logger, o usecase.OAuthDetail, c usecase.UserCredential) {
-	r := authRoutes{domainUrl: cfg.App.DomainUrl, userProfile: u, logger: l, oauthDetail: o, userCredential: c}
+func NewAuthRoutes(cfg *config.Config, handler *gin.RouterGroup, u usecase.UserProfile, l logger.Logger, o usecase.OAuthDetail, c usecase.UserCredential, lineChannelID string) {
+	r := authRoutes{domainUrl: cfg.App.DomainUrl, userProfile: u, logger: l, oauthDetail: o, userCredential: c, lineChannelID: lineChannelID}
 	auth := handler.Group("/auth")
 	{
 		auth.POST("/register", r.register)
@@ -52,8 +53,8 @@ type RegisterResponse struct {
 //	@Tags			Auth
 //	@Accept			json
 //	@Produce		json
-//	@Param			RegisterRequest	body				RegisterRequest	true	"register information"
-//	@Success		200	{object}			RegisterResponse	"Succesfully registered"
+//	@Param			RegisterRequest	body		RegisterRequest		true	"register information"
+//	@Success		200				{object}	RegisterResponse	"Succesfully registered"
 //	@Router			/auth/register [post]
 func (r *authRoutes) register(c *gin.Context) {
 	var req RegisterRequest
@@ -88,7 +89,7 @@ type LoginRequest struct {
 //	@Accept			json
 //	@Produce		json
 //	@Param			LoginRequest	body		LoginRequest	true	"login information"
-//	@Success		204		{object}	nil "No content"
+//	@Success		204				{object}	nil				"No content"
 //	@Router			/auth/login [post]
 func (r *authRoutes) login(c *gin.Context) {
 	var req LoginRequest
@@ -106,11 +107,9 @@ func (r *authRoutes) login(c *gin.Context) {
 		return
 	}
 
-	session := sessions.Default(c)
-	session.Set("userID", uc.UserID)
-	err = session.Save()
+	err = r.setUserSession(c, uc.UserID)
 	if err != nil {
-		r.logger.Error("http - v1 - login: failed to save session", err)
+		r.logger.Error("http - v1 - login: failed to set user session", err)
 		sendErrorResponse(c, http.StatusInternalServerError, "login failed")
 		return
 	}
@@ -133,7 +132,7 @@ func generateState() string {
 //	@Description	Redirect to Line Login
 //	@Tags			Auth
 //	@Produce		html
-//	@Success		302	{string}	string	Location "Redirect URL"
+//	@Success		302	{string}	string	Location	"Redirect URL"
 //	@Router			/auth/line-login [get]
 func (r *authRoutes) lineLogin(c *gin.Context) {
 	state := generateState()
@@ -151,10 +150,10 @@ func (r *authRoutes) lineLogin(c *gin.Context) {
 // lineCallback godoc
 //
 //	@Summary		Line Callback
-//	@Description	Handler the redirect from Line Login
+//	@Description	Handler the redirect from Line Login and set user session
 //	@Tags			Auth
-//	@Param			code	query		string	true	"code"
-//	@Success		200		{string}	string	"ok"
+//	@Param			code	query		string	true		"Authorization code returned from Line Login"
+//	@Success		302		{string}	string	Location	"Redirect URL"
 //	@Router			/auth/line-callback [get]
 func (r *authRoutes) lineCallback(c *gin.Context) {
 	code := c.Query("code")
@@ -164,18 +163,17 @@ func (r *authRoutes) lineCallback(c *gin.Context) {
 		return
 	}
 
-	oAuthDetail, err := r.oauthDetail.HandleOAuthCallback(c.Request.Context(), code, r.domainUrl, "line", os.Getenv("LINE_CHANNEL_ID"))
+	oAuthDetail, err := r.oauthDetail.HandleOAuthCallback(c.Request.Context(), code, r.domainUrl, "line", r.lineChannelID)
 	if err != nil {
 		r.logger.Error("http - v1 - lineCallback: failed to handle oauth callback", err)
 		sendErrorResponse(c, http.StatusInternalServerError, "failed to handle oauth callback")
 		return
 	}
 
-	session := sessions.Default(c)
-	session.Set("userID", oAuthDetail.UserID)
-	err = session.Save()
+	err = r.setUserSession(c, oAuthDetail.UserID)
 	if err != nil {
-		sendErrorResponse(c, http.StatusInternalServerError, err.Error())
+		r.logger.Error("http - v1 - lineCallback: failed to set user session", err)
+		sendErrorResponse(c, http.StatusInternalServerError, "login failed")
 		return
 	}
 
@@ -187,7 +185,7 @@ func (r *authRoutes) lineCallback(c *gin.Context) {
 //	@Summary		Logout
 //	@Description	Logout
 //	@Tags			Auth
-//	@Success		200	{string}	string	"ok"
+//	@Success		204	{object}	nil	"No content"
 //	@Router			/auth/logout [get]
 func (r *authRoutes) logout(c *gin.Context) {
 	session := sessions.Default(c)
@@ -199,4 +197,15 @@ func (r *authRoutes) logout(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, nil)
+}
+
+func (r *authRoutes) setUserSession(c *gin.Context, userID int) error {
+	session := sessions.Default(c)
+	session.Set("userID", userID)
+	err := session.Save()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
