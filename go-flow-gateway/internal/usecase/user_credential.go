@@ -68,22 +68,26 @@ func (uc *UserCredentialUseCase) Register(ctx context.Context, displayName, user
 func (uc *UserCredentialUseCase) GetByUsername(ctx context.Context, username string) (entity.UserCredential, error) {
 	u, err := uc.repo.GetByUsername(ctx, username)
 	if err != nil {
+		uc.logger.Error("UserCredentialUseCase - GetByUsername - repo.GetByUsername: failed to get user credential", "error", err)
 		return entity.UserCredential{}, fmt.Errorf("UserCredentialUseCase - GetByUsername: %w", err)
 	}
 
+	uc.logger.Info("UserCredentialUseCase - GetByUsername: user credential retrieved", "userID", u.UserID)
 	return u, nil
 }
 
 func (uc *UserCredentialUseCase) Login(ctx context.Context, username, password string) (entity.UserCredential, error) {
-	u, err := uc.repo.GetByUsername(ctx, username)
+	u, err := uc.GetByUsername(ctx, username)
 	if err != nil {
 		return entity.UserCredential{}, fmt.Errorf("UserCredentialUseCase - Login - GetByUsername: %w", err)
 	}
 
 	err = uc.hasher.CompareHash(ctx, password, u.PasswordHash)
 	if err != nil {
+		uc.logger.Error("UserCredentialUseCase - Login - CompareHash: failed to compare hash", "error", err)
 		return entity.UserCredential{}, fmt.Errorf("UserCredentialUseCase - Login - CompareHash: %w", err)
 	}
 
+	uc.logger.Info("UserCredentialUseCase - Login: user logged in", "userID", u.UserID)
 	return u, nil
 }
