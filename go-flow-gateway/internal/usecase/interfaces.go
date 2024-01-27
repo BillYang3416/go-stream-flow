@@ -55,8 +55,8 @@ type UserCredential interface {
 }
 
 type UserCredentialRepo interface {
-	Create(context.Context, entity.UserCredential) error
-	GetByUsername(context.Context, string) (entity.UserCredential, error)
+	Create(ctx context.Context, userCredential entity.UserCredential) error
+	GetByUsername(ctx context.Context, username string) (entity.UserCredential, error)
 }
 
 type PasswordHasher interface {
