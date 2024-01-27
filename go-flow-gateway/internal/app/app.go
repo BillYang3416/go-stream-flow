@@ -94,7 +94,7 @@ func Run(cfg *config.Config) {
 		repo.NewOAuthDetailRepo(pg),
 	)
 	userCredentialUseCase := usecase.NewUserCredentialUseCase(
-		repo.NewUserCredentialRepo(pg),
+		repo.NewUserCredentialRepo(pg, l),
 		utils.NewBcryptHasher(),
 		userProfileUseCase,
 		l,
