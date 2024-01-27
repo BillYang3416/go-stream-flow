@@ -47,9 +47,14 @@ func (r *UserCredentialRepo) Create(ctx context.Context, u entity.UserCredential
 }
 
 func (r *UserCredentialRepo) GetByUsername(ctx context.Context, username string) (entity.UserCredential, error) {
-	sql, args, err := r.Builder.Select("user_id", "username", "password_hash").From("user_credentials").Where("username = ?", username).ToSql()
+	sql, args, err := r.Builder.
+		Select("user_id", "username", "password_hash").
+		From("user_credentials").
+		Where("username = ?", username).
+		ToSql()
 
 	if err != nil {
+		r.logger.Error("UserCredentialRepo - GetByUsername - r.Builder: failed to build query", "error", err)
 		return entity.UserCredential{}, fmt.Errorf("UserCredentialRepo - GetByUsername - r.Builder: %w", err)
 	}
 
@@ -57,6 +62,7 @@ func (r *UserCredentialRepo) GetByUsername(ctx context.Context, username string)
 	row := r.Pool.QueryRow(ctx, sql, args...)
 	err = row.Scan(&u.UserID, &u.Username, &u.PasswordHash)
 	if err != nil {
+		r.logger.Error("UserCredentialRepo - GetByUsername - r.Pool.QueryRow: failed to execute query", "sql", sql, "error", err)
 		pgErrorChecker := postgres.NewPGErrorChecker()
 		if pgErrorChecker.IsNoRows(err) {
 			return entity.UserCredential{}, apperrors.NewNoRowsAffectedError("user credential not found", fmt.Sprintf("UserCredentialRepo - GetByUsername - r.Pool.QueryRow: %s", err.Error()))
@@ -64,5 +70,6 @@ func (r *UserCredentialRepo) GetByUsername(ctx context.Context, username string)
 		return entity.UserCredential{}, fmt.Errorf("UserCredentialRepo - GetByUsername - r.Pool.QueryRow: %w", err)
 	}
 
+	r.logger.Error("UserCredentialRepo - GetByUsername - user credential retrieved successfully", "username", u.Username)
 	return u, nil
 }
