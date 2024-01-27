@@ -28,14 +28,20 @@ func setupUserCredentialRepoTest(t *testing.T) (context.Context, pgxmock.PgxPool
 
 func TestUserCredentialRepo_Create(t *testing.T) {
 
+	const (
+		userID       = 123
+		userName     = "123"
+		passwordHash = "123"
+	)
+
 	t.Run("should create a user credential", func(t *testing.T) {
 
 		ctx, mock, repo := setupUserCredentialRepoTest(t)
 
 		userCredential := entity.UserCredential{
-			UserID:       123,
-			Username:     "123",
-			PasswordHash: "123",
+			UserID:       userID,
+			Username:     userName,
+			PasswordHash: passwordHash,
 		}
 
 		mock.ExpectExec("INSERT INTO user_credentials").
@@ -65,19 +71,28 @@ func TestUserCredentialRepo_Create(t *testing.T) {
 
 func TestUserCredentialRepo_GetByUsername(t *testing.T) {
 
+	const (
+		userID       = 123
+		userName     = "123"
+		passwordHash = "123"
+	)
+
 	t.Run("should get a user credential by username", func(t *testing.T) {
 
 		ctx, mock, repo := setupUserCredentialRepoTest(t)
 
 		userCredential := entity.UserCredential{
-			UserID:       123,
-			Username:     "123",
-			PasswordHash: "123",
+			UserID:       userID,
+			Username:     userName,
+			PasswordHash: passwordHash,
 		}
 
 		mock.ExpectQuery("SELECT user_id, username, password_hash FROM user_credentials").
 			WithArgs(userCredential.Username).
-			WillReturnRows(mock.NewRows([]string{"user_id", "username", "password_hash"}).AddRow(userCredential.UserID, userCredential.Username, userCredential.PasswordHash))
+			WillReturnRows(
+				mock.NewRows([]string{"user_id", "username", "password_hash"}).
+					AddRow(userCredential.UserID, userCredential.Username, userCredential.PasswordHash),
+			)
 
 		u, err := repo.GetByUsername(ctx, userCredential.Username)
 		assert.NoError(t, err, "Error should not have occurred when getting a user credential by username")
@@ -89,11 +104,7 @@ func TestUserCredentialRepo_GetByUsername(t *testing.T) {
 
 		ctx, mock, repo := setupUserCredentialRepoTest(t)
 
-		userCredential := entity.UserCredential{
-			UserID:       123,
-			Username:     "123",
-			PasswordHash: "123",
-		}
+		userCredential := entity.UserCredential{}
 
 		mock.ExpectQuery("SELECT user_id, username, password_hash FROM user_credentials").
 			WithArgs(userCredential.Username).
