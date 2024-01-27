@@ -3,19 +3,13 @@ package v1
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 
 	"github.com/bgg/go-flow-gateway/config"
-	"github.com/bgg/go-flow-gateway/internal/adapter/rest/token"
-	"github.com/bgg/go-flow-gateway/internal/entity"
 	"github.com/bgg/go-flow-gateway/internal/usecase"
-	"github.com/bgg/go-flow-gateway/internal/usecase/apperrors"
 	"github.com/bgg/go-flow-gateway/pkg/logger"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -138,7 +132,8 @@ func generateState() string {
 //	@Summary		Line Login
 //	@Description	Redirect to Line Login
 //	@Tags			Auth
-//	@Success		302	{string}	string	"ok"
+//	@Produce		html
+//	@Success		302	{string}	string	Location "Redirect URL"
 //	@Router			/auth/line-login [get]
 func (r *authRoutes) lineLogin(c *gin.Context) {
 	state := generateState()
@@ -149,6 +144,7 @@ func (r *authRoutes) lineLogin(c *gin.Context) {
 		state, // nonce can be the same as state for simplicity in this example
 	)
 
+	r.logger.Info("http - v1 - lineLogin: redirect to line login")
 	c.Redirect(http.StatusTemporaryRedirect, lineAuthUrl)
 }
 
@@ -163,76 +159,20 @@ func (r *authRoutes) lineLogin(c *gin.Context) {
 func (r *authRoutes) lineCallback(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {
+		r.logger.Warn("http - v1 - lineCallback: code is empty")
 		sendErrorResponse(c, http.StatusBadRequest, "code is empty")
 		return
 	}
 
-	tokens, err := r.exchangeCodeForTokens(code)
+	oAuthDetail, err := r.oauthDetail.HandleOAuthCallback(c.Request.Context(), code, r.domainUrl, "line", os.Getenv("LINE_CHANNEL_ID"))
 	if err != nil {
-		sendErrorResponse(c, http.StatusInternalServerError, err.Error())
+		r.logger.Error("http - v1 - lineCallback: failed to handle oauth callback", err)
+		sendErrorResponse(c, http.StatusInternalServerError, "failed to handle oauth callback")
 		return
-	}
-
-	lineUserProfile, err := token.VerifyLineIDToken(tokens.IDToken, os.Getenv("LINE_CHANNEL_ID"))
-	if err != nil {
-		sendErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	// check the oauth detail is exists
-	od, err := r.oauthDetail.GetByOAuthID(c.Request.Context(), lineUserProfile.Sub)
-	if err != nil {
-		// oauth detail is not found,then create a new oauth detail
-		if _, ok := apperrors.AsNoRowsAffectedError(err); ok {
-
-			userProfile := entity.UserProfile{
-				DisplayName: lineUserProfile.Name,
-				PictureURL:  lineUserProfile.Picture,
-			}
-
-			up, err := r.userProfile.Create(c.Request.Context(), userProfile)
-			if err != nil {
-				r.logger.Error(err, "http - v1 - lineCallback")
-				sendErrorResponse(c, http.StatusInternalServerError, "internal server problems")
-				return
-			}
-
-			oauthDetail := entity.OAuthDetail{
-				OAuthID:      lineUserProfile.Sub,
-				UserID:       up.UserID,
-				Provider:     "line",
-				AccessToken:  tokens.AccessToken,
-				RefreshToken: tokens.RefreshToken,
-			}
-
-			err = r.oauthDetail.Create(c.Request.Context(), oauthDetail)
-			if err != nil {
-				r.logger.Error(err, "http - v1 - lineCallback")
-				sendErrorResponse(c, http.StatusInternalServerError, "internal server problems")
-				return
-			}
-
-			// TODO: think about this way is good or not
-			od.UserID = up.UserID
-		} else {
-			r.logger.Error(err, "http - v1 - lineCallback")
-			sendErrorResponse(c, http.StatusInternalServerError, "internal server problems")
-			return
-		}
-	}
-
-	// user profile already exists, update the refresh token from provider
-	if od.OAuthID == lineUserProfile.Sub {
-		err = r.oauthDetail.UpdateRefreshToken(c.Request.Context(), lineUserProfile.Sub, tokens.RefreshToken)
-		if err != nil {
-			r.logger.Error(err, "http - v1 - lineCallback")
-			sendErrorResponse(c, http.StatusInternalServerError, "internal server problems")
-			return
-		}
 	}
 
 	session := sessions.Default(c)
-	session.Set("userID", od.UserID)
+	session.Set("userID", oAuthDetail.UserID)
 	err = session.Save()
 	if err != nil {
 		sendErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -240,56 +180,6 @@ func (r *authRoutes) lineCallback(c *gin.Context) {
 	}
 
 	c.Redirect(http.StatusTemporaryRedirect, r.domainUrl)
-}
-
-type TokenResponse struct {
-	AccessToken  string `json:"access_token"`
-	IDToken      string `json:"id_token"`
-	ExpiresIn    int    `json:"expires_in"`
-	TokenType    string `json:"token_type"`
-	RefreshToken string `json:"refresh_token"`
-}
-
-func (r *authRoutes) exchangeCodeForTokens(code string) (*TokenResponse, error) {
-
-	tokenEndpoint := "https://api.line.me/oauth2/v2.1/token"
-
-	data := url.Values{
-		"grant_type":    {"authorization_code"},
-		"code":          {code},
-		"redirect_uri":  {fmt.Sprintf("%s/api/v1/auth/line-callback", r.domainUrl)},
-		"client_id":     {os.Getenv("LINE_CHANNEL_ID")},
-		"client_secret": {os.Getenv("LINE_CHANNEL_SECRET")},
-	}
-
-	req, err := http.NewRequest("POST", tokenEndpoint, strings.NewReader(data.Encode()))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error response: %s", resp.Status)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var tr TokenResponse
-	if err := json.Unmarshal(body, &tr); err != nil {
-		return nil, err
-	}
-
-	return &tr, nil
 }
 
 // logout godoc

@@ -10,6 +10,7 @@ import (
 	"github.com/bgg/go-flow-gateway/internal/adapter/event"
 	v1 "github.com/bgg/go-flow-gateway/internal/adapter/rest/v1"
 	"github.com/bgg/go-flow-gateway/internal/infra/email"
+	"github.com/bgg/go-flow-gateway/internal/infra/external"
 	"github.com/bgg/go-flow-gateway/internal/infra/messaging/rabbitmq"
 	"github.com/bgg/go-flow-gateway/internal/infra/repo"
 	"github.com/bgg/go-flow-gateway/internal/infra/utils"
@@ -92,6 +93,9 @@ func Run(cfg *config.Config) {
 	)
 	oauthDetailUseCase := usecase.NewOAuthDetailUseCase(
 		repo.NewOAuthDetailRepo(pg),
+		userProfileUseCase,
+		l,
+		external.NewLineTokenService(l),
 	)
 	userCredentialUseCase := usecase.NewUserCredentialUseCase(
 		repo.NewUserCredentialRepo(pg, l),
