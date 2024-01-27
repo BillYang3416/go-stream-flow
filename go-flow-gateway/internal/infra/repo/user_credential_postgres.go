@@ -70,6 +70,6 @@ func (r *UserCredentialRepo) GetByUsername(ctx context.Context, username string)
 		return entity.UserCredential{}, fmt.Errorf("UserCredentialRepo - GetByUsername - r.Pool.QueryRow: %w", err)
 	}
 
-	r.logger.Error("UserCredentialRepo - GetByUsername - user credential retrieved successfully", "username", u.Username)
+	r.logger.Info("UserCredentialRepo - GetByUsername - user credential retrieved successfully", "username", u.Username)
 	return u, nil
 }
