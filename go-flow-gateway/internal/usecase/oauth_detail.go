@@ -37,7 +37,7 @@ func (uc *OAuthDetailUseCase) HandleOAuthCallback(ctx context.Context, code, dom
 	}
 
 	// check the oauth detail is exists
-	oauthDetail, err := uc.GetByOAuthID(ctx, lineUserProfile.Sub)
+	oAuthDetail, err := uc.GetByOAuthID(ctx, lineUserProfile.Sub)
 	if err != nil {
 		if _, ok := apperrors.AsNoRowsAffectedError(err); ok {
 
@@ -52,7 +52,7 @@ func (uc *OAuthDetailUseCase) HandleOAuthCallback(ctx context.Context, code, dom
 			}
 
 			// create oauth detail
-			oauthDetail = entity.OAuthDetail{
+			oAuthDetail = entity.OAuthDetail{
 				OAuthID:      lineUserProfile.Sub,
 				UserID:       userProfile.UserID,
 				Provider:     provider,
@@ -60,7 +60,7 @@ func (uc *OAuthDetailUseCase) HandleOAuthCallback(ctx context.Context, code, dom
 				RefreshToken: tokenResponse.RefreshToken,
 			}
 
-			err = uc.repo.Create(ctx, oauthDetail)
+			err = uc.repo.Create(ctx, oAuthDetail)
 			if err != nil {
 				uc.logger.Error("OAuthDetailUseCase - Create - s.repo.Create: failed to create oauth detail", "error", err)
 				return entity.OAuthDetail{}, fmt.Errorf("OAuthDetailUseCase - Create - s.repo.Create: %w", err)
@@ -71,15 +71,15 @@ func (uc *OAuthDetailUseCase) HandleOAuthCallback(ctx context.Context, code, dom
 			return entity.OAuthDetail{}, fmt.Errorf("OAuthDetailUseCase - HandleOAuthCallback - s.GetByOAuthID: %w", err)
 		}
 	} else {
-		err = uc.UpdateRefreshToken(ctx, fmt.Sprint(oauthDetail.UserID), tokenResponse.RefreshToken)
+		err = uc.UpdateRefreshToken(ctx, oAuthDetail.OAuthID, tokenResponse.RefreshToken)
 		if err != nil {
 			uc.logger.Error("OAuthDetailUseCase - HandleOAuthCallback - s.UpdateRefreshToken: failed to update refresh token", "error", err)
 			return entity.OAuthDetail{}, fmt.Errorf("OAuthDetailUseCase - HandleOAuthCallback - s.UpdateRefreshToken: %w", err)
 		}
 	}
 
-	uc.logger.Info("OAuthDetailUseCase - HandleOAuthCallback - success", "oauthDetail.UserID", oauthDetail.UserID)
-	return oauthDetail, nil
+	uc.logger.Info("OAuthDetailUseCase - HandleOAuthCallback - success", "oauthDetail.UserID", oAuthDetail.UserID)
+	return oAuthDetail, nil
 }
 
 func (uc *OAuthDetailUseCase) UpdateRefreshToken(ctx context.Context, userId string, refreshToken string) error {
