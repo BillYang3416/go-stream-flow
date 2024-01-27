@@ -92,7 +92,7 @@ func Run(cfg *config.Config) {
 		repo.NewUserProfileRepo(pg),
 	)
 	oauthDetailUseCase := usecase.NewOAuthDetailUseCase(
-		repo.NewOAuthDetailRepo(pg),
+		repo.NewOAuthDetailRepo(pg, l),
 		userProfileUseCase,
 		l,
 		external.NewLineTokenService(l),

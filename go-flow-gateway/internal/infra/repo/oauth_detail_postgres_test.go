@@ -6,6 +6,7 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/bgg/go-flow-gateway/internal/entity"
+	"github.com/bgg/go-flow-gateway/pkg/logger"
 	"github.com/bgg/go-flow-gateway/pkg/postgres"
 	"github.com/pashagolub/pgxmock/v3"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +20,7 @@ func setupOauthDetailRepoTest(t *testing.T) (context.Context, pgxmock.PgxPoolIfa
 	defer mock.Close()
 
 	pg := &postgres.Postgres{Pool: mock, Builder: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)}
-	repo := NewOAuthDetailRepo(pg)
+	repo := NewOAuthDetailRepo(pg, logger.New("debug"))
 	return ctx, mock, repo
 }
 

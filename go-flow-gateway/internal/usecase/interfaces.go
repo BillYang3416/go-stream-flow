@@ -44,9 +44,9 @@ type OAuthDetail interface {
 }
 
 type OAuthDetailRepo interface {
-	Create(context.Context, entity.OAuthDetail) error
-	UpdateRefreshToken(context.Context, string, string) error
-	GetByOAuthID(context.Context, string) (entity.OAuthDetail, error)
+	Create(ctx context.Context, oAuthDetail entity.OAuthDetail) error
+	UpdateRefreshToken(ctx context.Context, oAuthID, refreshToken string) error
+	GetByOAuthID(ctx context.Context, oAuthID string) (entity.OAuthDetail, error)
 }
 
 type TokenService interface {
