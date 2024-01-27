@@ -19,10 +19,6 @@ type MockPasswordHasher struct {
 	mock.Mock
 }
 
-type MockUserProfileUseCase struct {
-	mock.Mock
-}
-
 func (m *MockUserCredentialRepo) Create(ctx context.Context, userCredential entity.UserCredential) error {
 	args := m.Called(ctx, userCredential)
 	return args.Error(0)
@@ -41,16 +37,6 @@ func (m *MockPasswordHasher) GenerateHash(ctx context.Context, password string) 
 func (m *MockPasswordHasher) CompareHash(ctx context.Context, password, hashedPassword string) error {
 	args := m.Called(ctx, password, hashedPassword)
 	return args.Error(0)
-}
-
-func (m *MockUserProfileUseCase) Create(ctx context.Context, userProfile entity.UserProfile) (entity.UserProfile, error) {
-	args := m.Called(ctx, userProfile)
-	return args.Get(0).(entity.UserProfile), args.Error(1)
-}
-
-func (m *MockUserProfileUseCase) GetByID(ctx context.Context, userID int) (entity.UserProfile, error) {
-	args := m.Called(ctx, userID)
-	return args.Get(0).(entity.UserProfile), args.Error(1)
 }
 
 func setupUserCredentialUsecase(t *testing.T) (UserCredential, *MockUserCredentialRepo, *MockPasswordHasher, *MockUserProfileUseCase) {
