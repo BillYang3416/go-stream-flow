@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/bgg/go-flow-gateway/internal/entity"
+	"github.com/bgg/go-flow-gateway/internal/usecase/dto"
 )
 
 type UserProfile interface {
@@ -37,15 +38,20 @@ type UserUploadedFileEmailSender interface {
 }
 
 type OAuthDetail interface {
-	Create(context.Context, entity.OAuthDetail) error
-	UpdateRefreshToken(context.Context, string, string) error
-	GetByOAuthID(context.Context, string) (entity.OAuthDetail, error)
+	HandleOAuthCallback(ctx context.Context, code, domainUrl, provider, clientID string) (entity.OAuthDetail, error)
+	UpdateRefreshToken(ctx context.Context, userID, refreshToken string) error
+	GetByOAuthID(ctx context.Context, oAuthID string) (entity.OAuthDetail, error)
 }
 
 type OAuthDetailRepo interface {
 	Create(context.Context, entity.OAuthDetail) error
 	UpdateRefreshToken(context.Context, string, string) error
 	GetByOAuthID(context.Context, string) (entity.OAuthDetail, error)
+}
+
+type TokenService interface {
+	ExchangeCodeForTokens(code, domainUrl string) (*dto.TokenResponse, error)
+	VerifyIDToken(idToken, clietID string) (*dto.LineUserProfile, error)
 }
 
 type UserCredential interface {
