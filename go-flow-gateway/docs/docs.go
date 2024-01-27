@@ -73,8 +73,8 @@ const docTemplate = `{
                 "summary": "Login",
                 "parameters": [
                     {
-                        "description": "body",
-                        "name": "body",
+                        "description": "login information",
+                        "name": "LoginRequest",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -83,11 +83,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
+                    "204": {
+                        "description": "No content"
                     }
                 }
             }
@@ -347,12 +344,18 @@ const docTemplate = `{
         },
         "v1.LoginRequest": {
             "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
             "properties": {
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "password"
                 },
                 "username": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "username"
                 }
             }
         },
