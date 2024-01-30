@@ -79,7 +79,7 @@ func Run(cfg *config.Config) {
 	defer ch.Close()
 
 	userUploadedFileCase := usecase.NewUserUploadedFileUseCase(
-		repo.NewUserUploadedFileRepo(pg),
+		repo.NewUserUploadedFileRepo(pg, l),
 		rabbitmq.NewUserUploadedFilePublisher(l, ch),
 		email.NewUserUploadedFileEmailSender(smtpClient, l),
 		l,
