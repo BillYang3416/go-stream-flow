@@ -12,6 +12,8 @@ import (
 )
 
 func setupUserProfileRepoTest(t *testing.T) (context.Context, pgxmock.PgxPoolIface, *UserProfileRepo) {
+	t.Helper()
+
 	ctx := context.Background()
 	mock, err := pgxmock.NewPool()
 	assert.NoError(t, err, "Error should not have occurred when opening a stub database connection")

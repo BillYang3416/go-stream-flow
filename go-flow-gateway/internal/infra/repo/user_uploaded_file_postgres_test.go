@@ -14,6 +14,7 @@ import (
 )
 
 func setupUserUploadedFileRepoTest(t *testing.T) (context.Context, pgxmock.PgxPoolIface, *UserUploadedFileRepo) {
+	t.Helper()
 
 	ctx := context.Background()
 	mock, err := pgxmock.NewPool()

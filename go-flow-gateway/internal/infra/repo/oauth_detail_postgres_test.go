@@ -13,6 +13,7 @@ import (
 )
 
 func setupOauthDetailRepoTest(t *testing.T) (context.Context, pgxmock.PgxPoolIface, *OAuthDetailRepo) {
+	t.Helper()
 
 	ctx := context.Background()
 	mock, err := pgxmock.NewPool()

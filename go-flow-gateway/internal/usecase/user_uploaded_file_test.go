@@ -47,7 +47,9 @@ func (m *MockUserUploadedFileRepo) UpdateEmailSent(ctx context.Context, id int) 
 	return args.Error(0)
 }
 
-func setupUserUploadedFileUseCase() (*UserUploadedFileUseCase, *MockUserUploadedFileRepo, *MockUserUploadedFilePublisher, *MockUserUploadedFileEmailSender) {
+func setupUserUploadedFileUseCase(t *testing.T) (*UserUploadedFileUseCase, *MockUserUploadedFileRepo, *MockUserUploadedFilePublisher, *MockUserUploadedFileEmailSender) {
+	t.Helper()
+
 	mockRepo := new(MockUserUploadedFileRepo)
 	mockPub := new(MockUserUploadedFilePublisher)
 	mockSender := new(MockUserUploadedFileEmailSender)
@@ -66,7 +68,7 @@ func TestUserUploadedFileUseCase_Create(t *testing.T) {
 	)
 	t.Run("Create user uploaded file successfully", func(t *testing.T) {
 		// Arrange
-		uc, mockRepo, mockPub, _ := setupUserUploadedFileUseCase()
+		uc, mockRepo, mockPub, _ := setupUserUploadedFileUseCase(t)
 		ctx := context.Background()
 
 		userUploadedFile := entity.UserUploadedFile{
@@ -92,7 +94,7 @@ func TestUserUploadedFileUseCase_Create(t *testing.T) {
 
 	t.Run("Create user uploaded file with empty file", func(t *testing.T) {
 		// Arrange
-		uc, mockRepo, _, _ := setupUserUploadedFileUseCase()
+		uc, mockRepo, _, _ := setupUserUploadedFileUseCase(t)
 		ctx := context.Background()
 
 		userUploadedFile := entity.UserUploadedFile{}
@@ -120,7 +122,7 @@ func TestUserUploadedFileUseCase_SendEmail(t *testing.T) {
 
 	t.Run("Send email successfully", func(t *testing.T) {
 		// Arrange
-		uc, mockRepo, _, mockSender := setupUserUploadedFileUseCase()
+		uc, mockRepo, _, mockSender := setupUserUploadedFileUseCase(t)
 		ctx := context.Background()
 
 		userUploadedFile := entity.UserUploadedFile{
@@ -145,7 +147,7 @@ func TestUserUploadedFileUseCase_SendEmail(t *testing.T) {
 
 	t.Run("Send email with empty email recipient", func(t *testing.T) {
 		// Arrange
-		uc, _, _, mockSender := setupUserUploadedFileUseCase()
+		uc, _, _, mockSender := setupUserUploadedFileUseCase(t)
 		ctx := context.Background()
 
 		userUploadedFile := entity.UserUploadedFile{
@@ -181,7 +183,7 @@ func TestUserUploadedFileUseCase_GetPaginatedFiles(t *testing.T) {
 	)
 	t.Run("Get paginated files successfully", func(t *testing.T) {
 		// Arrange
-		uc, mockRepo, _, _ := setupUserUploadedFileUseCase()
+		uc, mockRepo, _, _ := setupUserUploadedFileUseCase(t)
 		ctx := context.Background()
 
 		userUploadedFiles := []entity.UserUploadedFile{
@@ -208,7 +210,7 @@ func TestUserUploadedFileUseCase_GetPaginatedFiles(t *testing.T) {
 
 	t.Run("Get paginated files with invalid user ID", func(t *testing.T) {
 		// Arrange
-		uc, mockRepo, _, _ := setupUserUploadedFileUseCase()
+		uc, mockRepo, _, _ := setupUserUploadedFileUseCase(t)
 		ctx := context.Background()
 
 		mockRepo.On("GetPaginatedFiles", ctx, lastID, userID, limit).Return([]entity.UserUploadedFile{}, 0, assert.AnError)
