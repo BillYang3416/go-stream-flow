@@ -13,8 +13,8 @@ import (
 )
 
 type userUploadedFileRoutes struct {
-	u usecase.UserUploadedFile
-	l logger.Logger
+	userUploadFile usecase.UserUploadedFile
+	logger         logger.Logger
 }
 
 func NewUserUploadedFileRoutes(handler *gin.RouterGroup, u usecase.UserUploadedFile, l logger.Logger) {
@@ -48,20 +48,21 @@ type createUserUploadedFileRequest struct {
 func (r *userUploadedFileRoutes) create(c *gin.Context) {
 	var request createUserUploadedFileRequest
 	if err := c.ShouldBind(&request); err != nil {
-		r.l.Error(err, "http - v1 - create")
+		r.logger.Error("http - v1 - create: invalid request body", err)
 		sendErrorResponse(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
 	file, err := c.FormFile("file")
 	if err != nil {
-		r.l.Error(err, "http - v1 - create")
+		r.logger.Error("http - v1 - create: invalid request body", err)
 		sendErrorResponse(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
 	uploadedFile, err := file.Open()
 	if err != nil {
+		r.logger.Error("http - v1 - create: failed to open file", err)
 		sendErrorResponse(c, http.StatusInternalServerError, "Failed to open file")
 		return
 	}
@@ -69,6 +70,7 @@ func (r *userUploadedFileRoutes) create(c *gin.Context) {
 
 	fileContent, err := io.ReadAll(uploadedFile)
 	if err != nil {
+		r.logger.Error("http - v1 - create: failed to read file", err)
 		sendErrorResponse(c, http.StatusInternalServerError, "Failed to read file")
 		return
 	}
@@ -76,12 +78,12 @@ func (r *userUploadedFileRoutes) create(c *gin.Context) {
 	session := sessions.Default(c)
 	userID, exists := session.Get("userID").(int)
 	if !exists {
-		r.l.Error(err, "http - v1 - create")
-		sendErrorResponse(c, http.StatusBadRequest, "invalid request body")
+		r.logger.Error("http - v1 - create: failed to get userID from session", err)
+		sendErrorResponse(c, http.StatusUnauthorized, "authentication failed")
 		return
 	}
 
-	_, err = r.u.Create(c.Request.Context(),
+	_, err = r.userUploadFile.Create(c.Request.Context(),
 		entity.UserUploadedFile{
 			UserID:         userID,
 			EmailRecipient: request.EmailRecipient,
@@ -90,7 +92,7 @@ func (r *userUploadedFileRoutes) create(c *gin.Context) {
 			Content:        fileContent,
 		})
 	if err != nil {
-		r.l.Error(err, "http - v1 - create")
+		r.logger.Error("http - v1 - create: failed to create user uploaded file", err)
 		sendErrorResponse(c, http.StatusInternalServerError, "Failed to create user uploaded file")
 		return
 	}
@@ -110,7 +112,7 @@ type getPaginatedFilesResponse struct {
 //	@Tags			User Uploaded File
 //	@Accept			json
 //	@Produce		json
-//	@Param			lastID	query		int	false	"last id"
+//	@Param			lastID	query		int	false	"last ID of the last record"
 //	@Param			limit	query		int	false	"limit"
 //	@Success		200		{object}	getPaginatedFilesResponse
 //	@Failure		400		{object}	errorResponse
@@ -118,29 +120,29 @@ type getPaginatedFilesResponse struct {
 func (r *userUploadedFileRoutes) getPaginatedFiles(c *gin.Context) {
 	lastID, err := strconv.Atoi(c.Query("lastID"))
 	if err != nil {
-		r.l.Error(err, "http - v1 - getPaginatedFiles")
-		sendErrorResponse(c, http.StatusBadRequest, "invalid lastID query parameter")
+		r.logger.Error("http - v1 - getPaginatedFiles : invalid lastID query parameter", err)
+		sendErrorResponse(c, http.StatusBadRequest, "invalid query parameter")
 		return
 	}
 
 	limit, err := strconv.Atoi(c.Query("limit"))
 	if err != nil {
-		r.l.Error(err, "http - v1 - getPaginatedFiles")
-		sendErrorResponse(c, http.StatusBadRequest, "invalid limit query parameter")
+		r.logger.Error("http - v1 - getPaginatedFiles : invalid limit query parameter", err)
+		sendErrorResponse(c, http.StatusBadRequest, "invalid query parameter")
 		return
 	}
 
 	session := sessions.Default(c)
 	userID, exists := session.Get("userID").(int)
 	if !exists {
-		r.l.Error(err, "http - v1 - getPaginatedFiles")
-		sendErrorResponse(c, http.StatusBadRequest, "invalid request body")
+		r.logger.Error("http - v1 - getPaginatedFiles: failed to get userID from session", err)
+		sendErrorResponse(c, http.StatusUnauthorized, "authentication failed")
 		return
 	}
 
-	files, totalRecords, err := r.u.GetPaginatedFiles(c.Request.Context(), lastID, userID, limit)
+	files, totalRecords, err := r.userUploadFile.GetPaginatedFiles(c.Request.Context(), lastID, userID, limit)
 	if err != nil {
-		r.l.Error(err, "http - v1 - getPaginatedFiles")
+		r.logger.Error("http - v1 - getPaginatedFiles: failed to get paginated files", err)
 		sendErrorResponse(c, http.StatusInternalServerError, "Failed to get paginated files")
 		return
 	}
