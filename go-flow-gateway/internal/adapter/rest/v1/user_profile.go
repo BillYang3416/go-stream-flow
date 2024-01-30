@@ -13,8 +13,8 @@ import (
 )
 
 type userProfileRoutes struct {
-	u usecase.UserProfile
-	l logger.Logger
+	userProfile usecase.UserProfile
+	logger      logger.Logger
 }
 
 func NewUserProfileRoutes(handler *gin.RouterGroup, u usecase.UserProfile, l logger.Logger) {
@@ -41,12 +41,12 @@ type userProfileResponse struct {
 
 // Create Profile godoc
 //
-//	@Summary		Create user profile
-//	@Description	Create user profile
-//	@Tags			User Profile
+//	@Summary		Create UserProfileRoutes
+//	@Description	Create UserProfileRoutes
+//	@Tags			UserProfileRoutes
 //	@Accept			json
 //	@Produce		json
-//	@Param			createUserProfileRequest	body		createUserProfileRequest	true	"user profile information"
+//	@Param			createUserProfileRequest	body		createUserProfileRequest	true	"UserProfileRoutes information"
 //	@Success		200							{object}	userProfileResponse
 //	@Failure		400							{object}	errorResponse
 //	@Router			/user-profiles [post]
@@ -54,7 +54,7 @@ func (r *userProfileRoutes) create(c *gin.Context) {
 	var request createUserProfileRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		r.l.Error(err, "http - v1 - create")
+		r.logger.Error("UserProfileRoutes - Create : invalid request body", err)
 		if validationErrs, ok := err.(validator.ValidationErrors); ok {
 			sendValidationErrorResponse(c, validationErrs)
 		} else {
@@ -63,7 +63,7 @@ func (r *userProfileRoutes) create(c *gin.Context) {
 		return
 	}
 
-	userProfile, err := r.u.Create(
+	userProfile, err := r.userProfile.Create(
 		c.Request.Context(),
 		entity.UserProfile{
 			DisplayName: request.DisplayName,
@@ -72,9 +72,9 @@ func (r *userProfileRoutes) create(c *gin.Context) {
 	)
 
 	if err != nil {
-		r.l.Error(err, "http - v1 - create")
+		r.logger.Error("UserProfileRoutes - Create : failed to create UserProfileRoutes", err)
 		if apperrors.IsUniqueConstraintError(err) {
-			sendErrorResponse(c, http.StatusConflict, "a user profile with the same user id already exists")
+			sendErrorResponse(c, http.StatusConflict, "a UserProfileRoutes with the same user id already exists")
 		} else {
 			sendErrorResponse(c, http.StatusInternalServerError, "internal server problems")
 		}
@@ -91,9 +91,9 @@ func (r *userProfileRoutes) create(c *gin.Context) {
 
 // GetUserProfile godoc
 //
-//	@Summary		Get user profile
-//	@Description	Get user profile
-//	@Tags			User Profile
+//	@Summary		Get UserProfileRoutes
+//	@Description	Get UserProfileRoutes
+//	@Tags			UserProfileRoutes
 //	@Accept			json
 //	@Produce		json
 //	@Param			userId	path		string	true	"user id"
@@ -103,15 +103,15 @@ func (r *userProfileRoutes) create(c *gin.Context) {
 func (r *userProfileRoutes) get(c *gin.Context) {
 	userId, err := strconv.Atoi(c.Param("userId"))
 	if err != nil {
-		r.l.Error(err, "http - v1 - find")
+		r.logger.Error("UserProfileRoutes - Get : invalid user id", err)
 		sendErrorResponse(c, http.StatusBadRequest, "invalid user id")
 		return
 	}
 
-	userProfile, err := r.u.GetByID(c.Request.Context(), userId)
+	userProfile, err := r.userProfile.GetByID(c.Request.Context(), userId)
 
 	if err != nil {
-		r.l.Error(err, "http - v1 - find")
+		r.logger.Error("UserProfileRoutes - Get : failed to get UserProfileRoutes", err)
 		sendErrorResponse(c, http.StatusInternalServerError, "internal server problems")
 		return
 	}
