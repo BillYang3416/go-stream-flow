@@ -18,23 +18,23 @@ type UserProfileRepo interface {
 }
 
 type UserUploadedFile interface {
-	Create(context.Context, entity.UserUploadedFile) (entity.UserUploadedFile, error)
-	SendEmail(context.Context, entity.UserUploadedFile) error
-	GetPaginatedFiles(context.Context, int, int, int) ([]entity.UserUploadedFile, int, error)
+	Create(ctx context.Context, userUploadedFile entity.UserUploadedFile) (entity.UserUploadedFile, error)
+	SendEmail(ctx context.Context, userUploadedFile entity.UserUploadedFile) error
+	GetPaginatedFiles(ctx context.Context, lastID, userID, limit int) ([]entity.UserUploadedFile, int, error)
 }
 
 type UserUploadedFileRepo interface {
-	Create(context.Context, entity.UserUploadedFile) (int, error)
-	GetPaginatedFiles(context.Context, int, int, int) ([]entity.UserUploadedFile, int, error)
-	UpdateEmailSent(context.Context, int) error
+	Create(ctx context.Context, userUploadedFile entity.UserUploadedFile) (int, error)
+	GetPaginatedFiles(ctx context.Context, lastID, userID, limit int) ([]entity.UserUploadedFile, int, error)
+	UpdateEmailSent(ctx context.Context, userUploadedFileID int) error
 }
 
 type UserUploadedFilePublisher interface {
-	Publish(context.Context, entity.UserUploadedFile) error
+	Publish(ctx context.Context, userUploadedFile entity.UserUploadedFile) error
 }
 
 type UserUploadedFileEmailSender interface {
-	Send(context.Context, entity.UserUploadedFile) error
+	Send(ctx context.Context, userUploadedFile entity.UserUploadedFile) error
 }
 
 type OAuthDetail interface {
