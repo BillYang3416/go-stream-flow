@@ -91,6 +91,7 @@ func Run(cfg *config.Config) {
 	// Use case
 	userProfileUseCase := usecase.NewUserProfileUseCase(
 		repo.NewUserProfileRepo(pg),
+		l,
 	)
 	oauthDetailUseCase := usecase.NewOAuthDetailUseCase(
 		repo.NewOAuthDetailRepo(pg, l),

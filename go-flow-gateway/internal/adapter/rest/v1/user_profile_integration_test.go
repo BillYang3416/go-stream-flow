@@ -32,15 +32,15 @@ func setupUserProfilesTable(t *testing.T) (*postgres.Postgres, func()) {
 }
 
 func TestUserProfileRoute_Create(t *testing.T) {
+	l := setupLogger(t)
 
 	pg, dbTeardown := setupUserProfilesTable(t)
 	defer dbTeardown()
 
-	userProfileUseCase := usecase.NewUserProfileUseCase(repo.NewUserProfileRepo(pg))
+	userProfileUseCase := usecase.NewUserProfileUseCase(repo.NewUserProfileRepo(pg), l)
 
 	router, redisTeardown := setupRouter(t)
 	defer redisTeardown()
-	l := setupLogger(t)
 
 	NewUserProfileRoutes(router.Group("/api/v1"), userProfileUseCase, l)
 
@@ -91,6 +91,7 @@ func TestUserProfileRoute_Create(t *testing.T) {
 }
 
 func TestUserProfileRoute_Get(t *testing.T) {
+	l := setupLogger(t)
 
 	pg, dbTeardown := setupUserProfilesTable(t)
 	defer dbTeardown()
@@ -101,11 +102,10 @@ func TestUserProfileRoute_Get(t *testing.T) {
 		t.Fatalf("could not insert test data: %s", err)
 	}
 
-	userProfileUseCase := usecase.NewUserProfileUseCase(repo.NewUserProfileRepo(pg))
+	userProfileUseCase := usecase.NewUserProfileUseCase(repo.NewUserProfileRepo(pg), l)
 
 	router, redisTeardown := setupRouter(t)
 	defer redisTeardown()
-	l := setupLogger(t)
 
 	NewUserProfileRoutes(router.Group("/api/v1"), userProfileUseCase, l)
 
