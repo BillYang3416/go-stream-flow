@@ -11,14 +11,14 @@ import (
 )
 
 type UserUploadedFilePublisher struct {
-	l          logger.Logger
+	logger     logger.Logger
 	ch         *amqp.Channel
 	exchange   string
 	routingKey string
 }
 
 func NewUserUploadedFilePublisher(l logger.Logger, ch *amqp.Channel) *UserUploadedFilePublisher {
-	pub := &UserUploadedFilePublisher{l: l, ch: ch, exchange: "user-uploaded-file", routingKey: "user-uploaded-file.event.created"}
+	pub := &UserUploadedFilePublisher{logger: l, ch: ch, exchange: "user-uploaded-file", routingKey: "user-uploaded-file.event.created"}
 
 	// declare exchange
 	err := ch.ExchangeDeclare(
@@ -31,8 +31,9 @@ func NewUserUploadedFilePublisher(l logger.Logger, ch *amqp.Channel) *UserUpload
 		nil,   // args
 	)
 	if err != nil {
-		pub.l.Error(err, "failed to declare exchange")
+		pub.logger.Error("UserUploadedFilePublisher - NewUserUploadedFilePublisher - ch.ExchangeDeclare: failed to declare exchange", "error", err)
 	}
+	pub.logger.Info("UserUploadedFilePublisher - NewUserUploadedFilePublisher: successfully declared exchange", "exchange", pub.exchange)
 
 	queueName := "user-uploaded-file-created-queue"
 	// declare queue
@@ -45,8 +46,9 @@ func NewUserUploadedFilePublisher(l logger.Logger, ch *amqp.Channel) *UserUpload
 		nil,   // args
 	)
 	if err != nil {
-		pub.l.Error(err, "failed to declare queue")
+		pub.logger.Error("UserUploadedFilePublisher - NewUserUploadedFilePublisher - ch.QueueDeclare: failed to declare queue", "error", err)
 	}
+	pub.logger.Info("UserUploadedFilePublisher - NewUserUploadedFilePublisher: successfully declared queue", "queue", queueName)
 
 	// declare binding
 	err = ch.QueueBind(
@@ -57,8 +59,9 @@ func NewUserUploadedFilePublisher(l logger.Logger, ch *amqp.Channel) *UserUpload
 		nil,   // args
 	)
 	if err != nil {
-		pub.l.Error(err, "failed to declare binding")
+		pub.logger.Error("UserUploadedFilePublisher - NewUserUploadedFilePublisher - ch.QueueBind: failed to bind queue", "error", err)
 	}
+	pub.logger.Info("UserUploadedFilePublisher - NewUserUploadedFilePublisher: successfully bound queue", "queue", queueName, "exchange", pub.exchange, "routingKey", pub.routingKey)
 
 	return pub
 }
@@ -68,7 +71,7 @@ func (pub *UserUploadedFilePublisher) Publish(ctx context.Context, file entity.U
 	file.Base64Content = base64.StdEncoding.EncodeToString(file.Content)
 	body, err := json.Marshal(file)
 	if err != nil {
-		pub.l.Error(err, "failed to marshal file")
+		pub.logger.Error("UserUploadedFilePublisher - Publish - json.Marshal: failed to marshal file", "error", err)
 		return err
 	}
 
@@ -84,9 +87,10 @@ func (pub *UserUploadedFilePublisher) Publish(ctx context.Context, file entity.U
 		},
 	)
 	if err != nil {
-		pub.l.Error(err, "failed to publish message")
+		pub.logger.Error("UserUploadedFilePublisher - Publish - ch.Publish: failed to publish message", "error", err)
 		return err
 	}
 
+	pub.logger.Info("UserUploadedFilePublisher - Publish: successfully published message", "exchange", pub.exchange, "routingKey", pub.routingKey)
 	return nil
 }
