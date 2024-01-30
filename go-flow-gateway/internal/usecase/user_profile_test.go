@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/bgg/go-flow-gateway/internal/entity"
+	"github.com/bgg/go-flow-gateway/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -23,18 +24,31 @@ func (m *MockUserProfileRepo) GetByID(ctx context.Context, userId int) (entity.U
 	return args.Get(0).(entity.UserProfile), args.Error(1)
 }
 
+func setupUserProfileUseCase(t *testing.T) (*UserProfileUseCase, *MockUserProfileRepo) {
+	t.Helper()
+
+	mockRepo := new(MockUserProfileRepo)
+	uc := NewUserProfileUseCase(mockRepo, logger.New("debug"))
+	return uc, mockRepo
+}
+
 func TestUserProfileUsecase_Create(t *testing.T) {
+
+	const (
+		userID      = 1234567890
+		displayName = "hank"
+		pictureURL  = "https://example.com"
+	)
 
 	t.Run("Create user profile successfully", func(t *testing.T) {
 		// Arrange
-		mockRepo := new(MockUserProfileRepo)
-		uc := NewUserProfileUseCase(mockRepo)
+		uc, mockRepo := setupUserProfileUseCase(t)
 		ctx := context.Background()
 
 		userProfile := entity.UserProfile{
-			UserID:      1234567890,
-			DisplayName: "test",
-			PictureURL:  "https://example.com",
+			UserID:      userID,
+			DisplayName: displayName,
+			PictureURL:  pictureURL,
 		}
 
 		mockRepo.On("Create", ctx, userProfile).Return(userProfile, nil)
@@ -47,10 +61,10 @@ func TestUserProfileUsecase_Create(t *testing.T) {
 		assert.Equal(t, userProfile, result)
 		mockRepo.AssertExpectations(t)
 	})
+
 	t.Run("Create user profile with invalid input", func(t *testing.T) {
 		// Arrange
-		mockRepo := new(MockUserProfileRepo)
-		uc := NewUserProfileUseCase(mockRepo)
+		uc, mockRepo := setupUserProfileUseCase(t)
 		ctx := context.Background()
 
 		userProfile := entity.UserProfile{}
@@ -69,16 +83,22 @@ func TestUserProfileUsecase_Create(t *testing.T) {
 }
 
 func TestUserProfileUsecase_GetByID(t *testing.T) {
+
+	const (
+		userID      = 1234567890
+		displayName = "hank"
+		pictureURL  = "https://example.com"
+	)
+
 	t.Run("Get user profile by id successfully", func(t *testing.T) {
 		// Arrange
-		mockRepo := new(MockUserProfileRepo)
-		uc := NewUserProfileUseCase(mockRepo)
+		uc, mockRepo := setupUserProfileUseCase(t)
 		ctx := context.Background()
 
 		userProfile := entity.UserProfile{
-			UserID:      1234567890,
-			DisplayName: "test",
-			PictureURL:  "https://example.com",
+			UserID:      userID,
+			DisplayName: displayName,
+			PictureURL:  pictureURL,
 		}
 
 		mockRepo.On("GetByID", ctx, userProfile.UserID).Return(userProfile, nil)
@@ -91,16 +111,16 @@ func TestUserProfileUsecase_GetByID(t *testing.T) {
 		assert.Equal(t, userProfile, result)
 		mockRepo.AssertExpectations(t)
 	})
+
 	t.Run("Get user profile by id with invalid user ID", func(t *testing.T) {
 		// Arrange
-		mockRepo := new(MockUserProfileRepo)
-		uc := NewUserProfileUseCase(mockRepo)
+		uc, mockRepo := setupUserProfileUseCase(t)
 		ctx := context.Background()
 
-		mockRepo.On("GetByID", ctx, 123).Return(entity.UserProfile{}, assert.AnError)
+		mockRepo.On("GetByID", ctx, userID).Return(entity.UserProfile{}, assert.AnError)
 
 		// Act
-		result, err := uc.GetByID(ctx, 123)
+		result, err := uc.GetByID(ctx, userID)
 
 		// Assert
 		assert.Error(t, err)
