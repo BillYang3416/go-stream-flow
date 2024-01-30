@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/bgg/go-flow-gateway/internal/entity"
+	"github.com/bgg/go-flow-gateway/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -46,23 +47,37 @@ func (m *MockUserUploadedFileRepo) UpdateEmailSent(ctx context.Context, id int) 
 	return args.Error(0)
 }
 
+func setupUserUploadedFileUseCase() (*UserUploadedFileUseCase, *MockUserUploadedFileRepo, *MockUserUploadedFilePublisher, *MockUserUploadedFileEmailSender) {
+	mockRepo := new(MockUserUploadedFileRepo)
+	mockPub := new(MockUserUploadedFilePublisher)
+	mockSender := new(MockUserUploadedFileEmailSender)
+	uc := NewUserUploadedFileUseCase(mockRepo, mockPub, mockSender, logger.New("debug"))
+	return uc, mockRepo, mockPub, mockSender
+}
+
 func TestUserUploadedFileUseCase_Create(t *testing.T) {
+
+	const (
+		ID      = 1
+		name    = "test.txt"
+		size    = 100
+		content = "test"
+		userID  = 123
+	)
 	t.Run("Create user uploaded file successfully", func(t *testing.T) {
 		// Arrange
-		mockRepo := new(MockUserUploadedFileRepo)
-		mockPub := new(MockUserUploadedFilePublisher)
-		mockSender := new(MockUserUploadedFileEmailSender)
-
-		uc := NewUserUploadedFileUseCase(mockRepo, mockPub, mockSender)
+		uc, mockRepo, mockPub, _ := setupUserUploadedFileUseCase()
 		ctx := context.Background()
+
 		userUploadedFile := entity.UserUploadedFile{
-			ID:      1,
-			Name:    "test.txt",
-			Size:    100,
-			Content: []byte("test"),
-			UserID:  123,
+			ID:      ID,
+			Name:    name,
+			Size:    size,
+			Content: []byte(content),
+			UserID:  userID,
 		}
-		mockRepo.On("Create", ctx, userUploadedFile).Return(1, nil)
+
+		mockRepo.On("Create", ctx, userUploadedFile).Return(ID, nil)
 		mockPub.On("Publish", ctx, userUploadedFile).Return(nil)
 
 		// Act
@@ -72,19 +87,15 @@ func TestUserUploadedFileUseCase_Create(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, userUploadedFile, result)
 		mockRepo.AssertExpectations(t)
+		mockPub.AssertExpectations(t)
 	})
 
 	t.Run("Create user uploaded file with empty file", func(t *testing.T) {
 		// Arrange
-		mockRepo := new(MockUserUploadedFileRepo)
-		mockPub := new(MockUserUploadedFilePublisher)
-		mockSender := new(MockUserUploadedFileEmailSender)
-
-		uc := NewUserUploadedFileUseCase(mockRepo, mockPub, mockSender)
+		uc, mockRepo, _, _ := setupUserUploadedFileUseCase()
 		ctx := context.Background()
-		userUploadedFile := entity.UserUploadedFile{
-			UserID: 123,
-		}
+
+		userUploadedFile := entity.UserUploadedFile{}
 		mockRepo.On("Create", ctx, userUploadedFile).Return(0, assert.AnError)
 
 		// Act
@@ -99,19 +110,25 @@ func TestUserUploadedFileUseCase_Create(t *testing.T) {
 }
 
 func TestUserUploadedFileUseCase_SendEmail(t *testing.T) {
+	const (
+		ID      = 1
+		name    = "test.txt"
+		size    = 100
+		content = "test"
+		userID  = 123
+	)
+
 	t.Run("Send email successfully", func(t *testing.T) {
 		// Arrange
-		mockRepo := new(MockUserUploadedFileRepo)
-		mockPub := new(MockUserUploadedFilePublisher)
-		mockSender := new(MockUserUploadedFileEmailSender)
-		uc := NewUserUploadedFileUseCase(mockRepo, mockPub, mockSender)
+		uc, mockRepo, _, mockSender := setupUserUploadedFileUseCase()
 		ctx := context.Background()
+
 		userUploadedFile := entity.UserUploadedFile{
-			Name:           "test.txt",
-			Size:           100,
-			Content:        []byte("test"),
-			UserID:         123,
-			EmailRecipient: "",
+			ID:      ID,
+			Name:    name,
+			Size:    size,
+			Content: []byte(content),
+			UserID:  userID,
 		}
 
 		mockRepo.On("UpdateEmailSent", ctx, userUploadedFile.ID).Return(nil)
@@ -123,22 +140,23 @@ func TestUserUploadedFileUseCase_SendEmail(t *testing.T) {
 		// Assert
 		assert.NoError(t, err)
 		mockSender.AssertExpectations(t)
+		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("Send email with empty email recipient", func(t *testing.T) {
 		// Arrange
-		mockRepo := new(MockUserUploadedFileRepo)
-		mockPub := new(MockUserUploadedFilePublisher)
-		mockSender := new(MockUserUploadedFileEmailSender)
-		uc := NewUserUploadedFileUseCase(mockRepo, mockPub, mockSender)
+		uc, _, _, mockSender := setupUserUploadedFileUseCase()
 		ctx := context.Background()
+
 		userUploadedFile := entity.UserUploadedFile{
-			Name:           "test.txt",
-			Size:           100,
-			Content:        []byte("test"),
-			UserID:         123,
+			ID:             ID,
+			Name:           name,
+			Size:           size,
+			Content:        []byte(content),
+			UserID:         userID,
 			EmailRecipient: "",
 		}
+
 		mockSender.On("Send", ctx, userUploadedFile).Return(assert.AnError)
 
 		// Act
@@ -151,25 +169,31 @@ func TestUserUploadedFileUseCase_SendEmail(t *testing.T) {
 }
 
 func TestUserUploadedFileUseCase_GetPaginatedFiles(t *testing.T) {
+
+	const (
+		userID  = 123
+		lastID  = 0
+		limit   = 10
+		ID      = 1
+		name    = "test.txt"
+		size    = 100
+		content = "test"
+	)
 	t.Run("Get paginated files successfully", func(t *testing.T) {
 		// Arrange
-		mockRepo := new(MockUserUploadedFileRepo)
-		mockPub := new(MockUserUploadedFilePublisher)
-		mockSender := new(MockUserUploadedFileEmailSender)
-		uc := NewUserUploadedFileUseCase(mockRepo, mockPub, mockSender)
+		uc, mockRepo, _, _ := setupUserUploadedFileUseCase()
 		ctx := context.Background()
-		userID := 123
-		lastID := 0
-		limit := 10
+
 		userUploadedFiles := []entity.UserUploadedFile{
 			{
-				Name:           "test.txt",
-				Size:           100,
-				Content:        []byte("test"),
-				UserID:         123,
-				EmailRecipient: "",
+				ID:      ID,
+				Name:    name,
+				Size:    size,
+				Content: []byte(content),
+				UserID:  userID,
 			},
 		}
+
 		mockRepo.On("GetPaginatedFiles", ctx, lastID, userID, limit).Return(userUploadedFiles, len(userUploadedFiles), nil)
 
 		// Act
@@ -184,14 +208,9 @@ func TestUserUploadedFileUseCase_GetPaginatedFiles(t *testing.T) {
 
 	t.Run("Get paginated files with invalid user ID", func(t *testing.T) {
 		// Arrange
-		mockRepo := new(MockUserUploadedFileRepo)
-		mockPub := new(MockUserUploadedFilePublisher)
-		mockSender := new(MockUserUploadedFileEmailSender)
-		uc := NewUserUploadedFileUseCase(mockRepo, mockPub, mockSender)
+		uc, mockRepo, _, _ := setupUserUploadedFileUseCase()
 		ctx := context.Background()
-		userID := 123
-		lastID := 0
-		limit := 10
+
 		mockRepo.On("GetPaginatedFiles", ctx, lastID, userID, limit).Return([]entity.UserUploadedFile{}, 0, assert.AnError)
 
 		// Act
