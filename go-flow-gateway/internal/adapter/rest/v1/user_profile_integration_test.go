@@ -97,7 +97,7 @@ func TestUserProfileRoute_Get(t *testing.T) {
 	defer dbTeardown()
 
 	// insert test data
-	_, err := pg.Pool.Exec(context.Background(), `INSERT INTO user_profiles (user_id, display_name, picture_url, access_token, refresh_token) VALUES ('testuser', 'Test User', 'https://test.com/test.jpg', 'test-access-token', 'test-refresh-token');`)
+	_, err := pg.Pool.Exec(context.Background(), `INSERT INTO user_profiles (user_id, display_name, picture_url) VALUES (1, 'Test User', 'https://test.com/test.jpg');`)
 	if err != nil {
 		t.Fatalf("could not insert test data: %s", err)
 	}
@@ -113,7 +113,7 @@ func TestUserProfileRoute_Get(t *testing.T) {
 
 	t.Run("get user profile successfully", func(t *testing.T) {
 		// create a actual request with session cookie
-		req, _ := http.NewRequest("GET", "/api/v1/user-profiles/testuser", nil)
+		req, _ := http.NewRequest("GET", "/api/v1/user-profiles/1", nil)
 		req.Header.Set("Content-Type", "application/json")
 		req.AddCookie(sessionCookie)
 
@@ -127,7 +127,7 @@ func TestUserProfileRoute_Get(t *testing.T) {
 
 	t.Run("get user profile with invalid user id", func(t *testing.T) {
 		// create a actual request with session cookie
-		req, _ := http.NewRequest("GET", "/api/v1/user-profiles/invalid-user-id", nil)
+		req, _ := http.NewRequest("GET", "/api/v1/user-profiles/2", nil)
 		req.Header.Set("Content-Type", "application/json")
 		req.AddCookie(sessionCookie)
 
