@@ -60,19 +60,19 @@ func (r *authRoutes) register(c *gin.Context) {
 	var req RegisterRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
-		r.logger.Warn("http - v1 - register: invalid request body", err)
+		r.logger.Warn("AuthRoutes - register: invalid request body", err)
 		sendErrorResponse(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
 	userID, err := r.userCredential.Register(c.Request.Context(), req.DisplayName, req.Username, req.Password)
 	if err != nil {
-		r.logger.Error("http - v1 - register: register failed", err)
+		r.logger.Error("AuthRoutes - register: register failed", err)
 		sendErrorResponse(c, http.StatusInternalServerError, "register failed")
 		return
 	}
 
-	r.logger.Info("http - v1 - register: register successfully", "userID", userID)
+	r.logger.Info("AuthRoutes - register: register successfully", "userID", userID)
 	c.JSON(http.StatusOK, RegisterResponse{UserID: fmt.Sprint(userID)})
 }
 
@@ -95,21 +95,21 @@ func (r *authRoutes) login(c *gin.Context) {
 	var req LoginRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
-		r.logger.Error("http - v1 - login: invalid request body", err)
+		r.logger.Error("AuthRoutes - login: invalid request body", err)
 		sendErrorResponse(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
 	uc, err := r.userCredential.Login(c.Request.Context(), req.Username, req.Password)
 	if err != nil {
-		r.logger.Error("http - v1 - login: login failed", err)
+		r.logger.Error("AuthRoutes - login: login failed", err)
 		sendErrorResponse(c, http.StatusUnauthorized, "login failed")
 		return
 	}
 
 	err = r.setUserSession(c, uc.UserID)
 	if err != nil {
-		r.logger.Error("http - v1 - login: failed to set user session", err)
+		r.logger.Error("AuthRoutes - login: failed to set user session", err)
 		sendErrorResponse(c, http.StatusInternalServerError, "login failed")
 		return
 	}
@@ -143,7 +143,7 @@ func (r *authRoutes) lineLogin(c *gin.Context) {
 		state, // nonce can be the same as state for simplicity in this example
 	)
 
-	r.logger.Info("http - v1 - lineLogin: redirect to line login")
+	r.logger.Info("AuthRoutes - lineLogin: redirect to line login")
 	c.Redirect(http.StatusTemporaryRedirect, lineAuthUrl)
 }
 
@@ -158,21 +158,21 @@ func (r *authRoutes) lineLogin(c *gin.Context) {
 func (r *authRoutes) lineCallback(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {
-		r.logger.Warn("http - v1 - lineCallback: code is empty")
+		r.logger.Warn("AuthRoutes - lineCallback: code is empty")
 		sendErrorResponse(c, http.StatusBadRequest, "code is empty")
 		return
 	}
 
 	oAuthDetail, err := r.oauthDetail.HandleOAuthCallback(c.Request.Context(), code, r.domainUrl, "line", r.lineChannelID)
 	if err != nil {
-		r.logger.Error("http - v1 - lineCallback: failed to handle oauth callback", err)
+		r.logger.Error("AuthRoutes - lineCallback: failed to handle oauth callback", err)
 		sendErrorResponse(c, http.StatusInternalServerError, "failed to handle oauth callback")
 		return
 	}
 
 	err = r.setUserSession(c, oAuthDetail.UserID)
 	if err != nil {
-		r.logger.Error("http - v1 - lineCallback: failed to set user session", err)
+		r.logger.Error("AuthRoutes - lineCallback: failed to set user session", err)
 		sendErrorResponse(c, http.StatusInternalServerError, "login failed")
 		return
 	}

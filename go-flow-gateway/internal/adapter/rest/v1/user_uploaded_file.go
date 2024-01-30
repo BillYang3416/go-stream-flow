@@ -48,21 +48,21 @@ type createUserUploadedFileRequest struct {
 func (r *userUploadedFileRoutes) create(c *gin.Context) {
 	var request createUserUploadedFileRequest
 	if err := c.ShouldBind(&request); err != nil {
-		r.logger.Error("http - v1 - create: invalid request body", err)
+		r.logger.Error("UserUploadedFileRoutes - create: invalid request body", err)
 		sendErrorResponse(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
 	file, err := c.FormFile("file")
 	if err != nil {
-		r.logger.Error("http - v1 - create: invalid request body", err)
+		r.logger.Error("UserUploadedFileRoutes - create: invalid request body", err)
 		sendErrorResponse(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
 	uploadedFile, err := file.Open()
 	if err != nil {
-		r.logger.Error("http - v1 - create: failed to open file", err)
+		r.logger.Error("UserUploadedFileRoutes - create: failed to open file", err)
 		sendErrorResponse(c, http.StatusInternalServerError, "Failed to open file")
 		return
 	}
@@ -70,7 +70,7 @@ func (r *userUploadedFileRoutes) create(c *gin.Context) {
 
 	fileContent, err := io.ReadAll(uploadedFile)
 	if err != nil {
-		r.logger.Error("http - v1 - create: failed to read file", err)
+		r.logger.Error("UserUploadedFileRoutes - create: failed to read file", err)
 		sendErrorResponse(c, http.StatusInternalServerError, "Failed to read file")
 		return
 	}
@@ -78,7 +78,7 @@ func (r *userUploadedFileRoutes) create(c *gin.Context) {
 	session := sessions.Default(c)
 	userID, exists := session.Get("userID").(int)
 	if !exists {
-		r.logger.Error("http - v1 - create: failed to get userID from session", err)
+		r.logger.Error("UserUploadedFileRoutes - create: failed to get userID from session", err)
 		sendErrorResponse(c, http.StatusUnauthorized, "authentication failed")
 		return
 	}
@@ -92,7 +92,7 @@ func (r *userUploadedFileRoutes) create(c *gin.Context) {
 			Content:        fileContent,
 		})
 	if err != nil {
-		r.logger.Error("http - v1 - create: failed to create user uploaded file", err)
+		r.logger.Error("UserUploadedFileRoutes - create: failed to create user uploaded file", err)
 		sendErrorResponse(c, http.StatusInternalServerError, "Failed to create user uploaded file")
 		return
 	}
@@ -120,14 +120,14 @@ type getPaginatedFilesResponse struct {
 func (r *userUploadedFileRoutes) getPaginatedFiles(c *gin.Context) {
 	lastID, err := strconv.Atoi(c.Query("lastID"))
 	if err != nil {
-		r.logger.Error("http - v1 - getPaginatedFiles : invalid lastID query parameter", err)
+		r.logger.Error("UserUploadedFileRoutes - getPaginatedFiles : invalid lastID query parameter", err)
 		sendErrorResponse(c, http.StatusBadRequest, "invalid query parameter")
 		return
 	}
 
 	limit, err := strconv.Atoi(c.Query("limit"))
 	if err != nil {
-		r.logger.Error("http - v1 - getPaginatedFiles : invalid limit query parameter", err)
+		r.logger.Error("UserUploadedFileRoutes - getPaginatedFiles : invalid limit query parameter", err)
 		sendErrorResponse(c, http.StatusBadRequest, "invalid query parameter")
 		return
 	}
@@ -135,14 +135,14 @@ func (r *userUploadedFileRoutes) getPaginatedFiles(c *gin.Context) {
 	session := sessions.Default(c)
 	userID, exists := session.Get("userID").(int)
 	if !exists {
-		r.logger.Error("http - v1 - getPaginatedFiles: failed to get userID from session", err)
+		r.logger.Error("UserUploadedFileRoutes - getPaginatedFiles: failed to get userID from session", err)
 		sendErrorResponse(c, http.StatusUnauthorized, "authentication failed")
 		return
 	}
 
 	files, totalRecords, err := r.userUploadFile.GetPaginatedFiles(c.Request.Context(), lastID, userID, limit)
 	if err != nil {
-		r.logger.Error("http - v1 - getPaginatedFiles: failed to get paginated files", err)
+		r.logger.Error("UserUploadedFileRoutes - getPaginatedFiles: failed to get paginated files", err)
 		sendErrorResponse(c, http.StatusInternalServerError, "Failed to get paginated files")
 		return
 	}
