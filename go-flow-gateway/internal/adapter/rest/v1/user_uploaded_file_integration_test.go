@@ -14,6 +14,7 @@ import (
 	"github.com/bgg/go-flow-gateway/internal/infra/repo"
 	"github.com/bgg/go-flow-gateway/internal/usecase"
 	"github.com/bgg/go-flow-gateway/pkg/postgres"
+	"github.com/gin-gonic/gin"
 )
 
 func setupUserUploadedFilesTable(t *testing.T) (*postgres.Postgres, func()) {
@@ -47,36 +48,51 @@ func setupUserUploadedFilesTable(t *testing.T) (*postgres.Postgres, func()) {
 	return pg, dbTeardown
 }
 
-func TestUserUploadedFileRoute_Create(t *testing.T) {
-
+func setupUserUploadedFileRoute(t *testing.T) (*gin.Engine, *http.Cookie, *postgres.Postgres, func()) {
 	pg, dbTeardown := setupUserUploadedFilesTable(t)
-	defer dbTeardown()
 
 	ch, rabbitMQTeardown := setupRabbitMQ(t)
-	defer rabbitMQTeardown()
 
 	smtpClient, smtpTeardown := setupMailhog(t)
-	defer smtpTeardown()
 
 	l := setupLogger(t)
 
 	userUploadedFileUseCase := usecase.NewUserUploadedFileUseCase(repo.NewUserUploadedFileRepo(pg, l), rabbitmq.NewUserUploadedFilePublisher(l, ch), email.NewUserUploadedFileEmailSender(smtpClient, l), l)
 
 	router, redisTeardown := setupRouter(t)
-	defer redisTeardown()
 
 	NewUserUploadedFileRoutes(router.Group("/api/v1"), userUploadedFileUseCase, l)
 
 	sessionCookie := setupSessions(t, router)
+	return router, sessionCookie, pg, func() {
+		dbTeardown()
+		redisTeardown()
+		rabbitMQTeardown()
+		smtpTeardown()
+	}
+}
+
+func TestUserUploadedFileRoute_Create(t *testing.T) {
+
+	router, sessionCookie, _, teardown := setupUserUploadedFileRoute(t)
+	defer teardown()
+
+	const (
+		url            = "/api/v1/user-uploaded-files/"
+		httpMethod     = "POST"
+		emailRecipient = "johndoe@email.com"
+		fileName       = "test.txt"
+		fileContent    = "dummy file content"
+	)
 
 	t.Run("create user uploaded file successfully", func(t *testing.T) {
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)
 
-		_ = writer.WriteField("emailRecipient", "johndoe@email.com")
+		_ = writer.WriteField("emailRecipient", emailRecipient)
 
-		fileContent := bytes.NewBufferString("dummy file content")
-		part, err := writer.CreateFormFile("file", "test.txt")
+		fileContent := bytes.NewBufferString(fileContent)
+		part, err := writer.CreateFormFile("file", fileName)
 		if err != nil {
 			t.Fatalf("could not create form file: %s", err)
 		}
@@ -87,7 +103,7 @@ func TestUserUploadedFileRoute_Create(t *testing.T) {
 
 		writer.Close()
 
-		req, err := http.NewRequest("POST", "/api/v1/user-uploaded-files/", body)
+		req, err := http.NewRequest(httpMethod, url, body)
 		if err != nil {
 			t.Fatalf("could not create request: %s", err)
 		}
@@ -108,8 +124,8 @@ func TestUserUploadedFileRoute_Create(t *testing.T) {
 
 		_ = writer.WriteField("emailRecipient", "invalid email")
 
-		fileContent := bytes.NewBufferString("dummy file content")
-		part, err := writer.CreateFormFile("file", "test.txt")
+		fileContent := bytes.NewBufferString(fileContent)
+		part, err := writer.CreateFormFile("file", fileName)
 		if err != nil {
 			t.Fatalf("could not create form file: %s", err)
 		}
@@ -120,7 +136,7 @@ func TestUserUploadedFileRoute_Create(t *testing.T) {
 
 		writer.Close()
 
-		req, err := http.NewRequest("POST", "/api/v1/user-uploaded-files/", body)
+		req, err := http.NewRequest(httpMethod, url, body)
 		if err != nil {
 			t.Fatalf("could not create request: %s", err)
 		}
