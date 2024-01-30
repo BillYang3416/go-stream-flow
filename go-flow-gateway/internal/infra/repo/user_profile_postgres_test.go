@@ -6,6 +6,7 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/bgg/go-flow-gateway/internal/entity"
+	"github.com/bgg/go-flow-gateway/pkg/logger"
 	"github.com/bgg/go-flow-gateway/pkg/postgres"
 	"github.com/pashagolub/pgxmock/v3"
 	"github.com/stretchr/testify/assert"
@@ -20,23 +21,29 @@ func setupUserProfileRepoTest(t *testing.T) (context.Context, pgxmock.PgxPoolIfa
 	defer mock.Close()
 
 	pg := &postgres.Postgres{Pool: mock, Builder: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)}
-	repo := NewUserProfileRepo(pg)
+	repo := NewUserProfileRepo(pg, logger.New("debug"))
 	return ctx, mock, repo
 }
 
 func TestUserProfileRepo_Create(t *testing.T) {
+
+	const (
+		userID      = 1234567890
+		displayName = "hank"
+		pictureURL  = "https://example.com"
+	)
 
 	t.Run("should create a user profile", func(t *testing.T) {
 		// Arrange
 		ctx, mock, repo := setupUserProfileRepoTest(t)
 
 		userProfile := entity.UserProfile{
-			UserID:      123,
-			DisplayName: "John Doe",
-			PictureURL:  "https://example.com/picture.jpg",
+			UserID:      userID,
+			DisplayName: displayName,
+			PictureURL:  pictureURL,
 		}
 
-		rows := pgxmock.NewRows([]string{"user_id"}).AddRow(123)
+		rows := pgxmock.NewRows([]string{"user_id"}).AddRow(userID)
 
 		mock.ExpectQuery("INSERT INTO user_profiles").
 			WithArgs(userProfile.DisplayName, userProfile.PictureURL).
@@ -71,23 +78,29 @@ func TestUserProfileRepo_Create(t *testing.T) {
 
 func TestUserProfileRepo_GetByID(t *testing.T) {
 
+	const (
+		userID      = 1234567890
+		displayName = "hank"
+		pictureURL  = "https://example.com"
+	)
+
 	t.Run("should return a user profile by id", func(t *testing.T) {
 		// Arrange
 		ctx, mock, repo := setupUserProfileRepoTest(t)
 
 		userProfile := entity.UserProfile{
-			UserID:      123,
-			DisplayName: "John Doe",
-			PictureURL:  "https://example.com/picture.jpg",
+			UserID:      userID,
+			DisplayName: displayName,
+			PictureURL:  pictureURL,
 		}
 
 		mock.ExpectQuery("SELECT").
-			WithArgs(userProfile.UserID).
+			WithArgs(userID).
 			WillReturnRows(pgxmock.NewRows([]string{"user_id", "display_name", "picture_url"}).
-				AddRow(userProfile.UserID, userProfile.DisplayName, userProfile.PictureURL))
+				AddRow(userID, displayName, pictureURL))
 
 		// Act
-		result, err := repo.GetByID(ctx, userProfile.UserID)
+		result, err := repo.GetByID(ctx, userID)
 
 		// Assert
 		assert.NoError(t, err, "Error should not have occurred when getting a user profile")
@@ -99,14 +112,12 @@ func TestUserProfileRepo_GetByID(t *testing.T) {
 		// Arrange
 		ctx, mock, repo := setupUserProfileRepoTest(t)
 
-		userProfile := entity.UserProfile{}
-
 		mock.ExpectQuery("SELECT").
-			WithArgs(userProfile.UserID).
+			WithArgs(userID).
 			WillReturnError(assert.AnError)
 
 		// Act
-		result, err := repo.GetByID(ctx, userProfile.UserID)
+		result, err := repo.GetByID(ctx, userID)
 
 		// Assert
 		assert.Error(t, err, "Error should have occurred when getting a user profile")
