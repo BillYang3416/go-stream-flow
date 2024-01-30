@@ -60,7 +60,7 @@ func TestUserUploadedFileRoute_Create(t *testing.T) {
 
 	l := setupLogger(t)
 
-	userUploadedFileUseCase := usecase.NewUserUploadedFileUseCase(repo.NewUserUploadedFileRepo(pg), rabbitmq.NewUserUploadedFilePublisher(l, ch), email.NewUserUploadedFileEmailSender(smtpClient, l))
+	userUploadedFileUseCase := usecase.NewUserUploadedFileUseCase(repo.NewUserUploadedFileRepo(pg), rabbitmq.NewUserUploadedFilePublisher(l, ch), email.NewUserUploadedFileEmailSender(smtpClient, l), l)
 
 	router, redisTeardown := setupRouter(t)
 	defer redisTeardown()

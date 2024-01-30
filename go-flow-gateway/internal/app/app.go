@@ -82,6 +82,7 @@ func Run(cfg *config.Config) {
 		repo.NewUserUploadedFileRepo(pg),
 		rabbitmq.NewUserUploadedFilePublisher(l, ch),
 		email.NewUserUploadedFileEmailSender(smtpClient, l),
+		l,
 	)
 	// Consumer
 	cs := event.NewUserUploadedFileConsumer(userUploadedFileCase, ch, l)
