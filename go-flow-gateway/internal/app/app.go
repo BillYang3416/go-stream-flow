@@ -90,7 +90,7 @@ func Run(cfg *config.Config) {
 
 	// Use case
 	userProfileUseCase := usecase.NewUserProfileUseCase(
-		repo.NewUserProfileRepo(pg),
+		repo.NewUserProfileRepo(pg, l),
 		l,
 	)
 	oauthDetailUseCase := usecase.NewOAuthDetailUseCase(

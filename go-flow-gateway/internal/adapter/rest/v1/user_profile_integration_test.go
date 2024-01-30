@@ -37,7 +37,7 @@ func TestUserProfileRoute_Create(t *testing.T) {
 	pg, dbTeardown := setupUserProfilesTable(t)
 	defer dbTeardown()
 
-	userProfileUseCase := usecase.NewUserProfileUseCase(repo.NewUserProfileRepo(pg), l)
+	userProfileUseCase := usecase.NewUserProfileUseCase(repo.NewUserProfileRepo(pg, l), l)
 
 	router, redisTeardown := setupRouter(t)
 	defer redisTeardown()
@@ -102,7 +102,7 @@ func TestUserProfileRoute_Get(t *testing.T) {
 		t.Fatalf("could not insert test data: %s", err)
 	}
 
-	userProfileUseCase := usecase.NewUserProfileUseCase(repo.NewUserProfileRepo(pg), l)
+	userProfileUseCase := usecase.NewUserProfileUseCase(repo.NewUserProfileRepo(pg, l), l)
 
 	router, redisTeardown := setupRouter(t)
 	defer redisTeardown()
