@@ -40,7 +40,7 @@ func (r *UserUploadedFileRepo) Create(ctx context.Context, u entity.UserUploaded
 		return 0, fmt.Errorf("UserUploadedFileRepo - Save - r.Pool.QueryRow: %w", err)
 	}
 
-	r.logger.Info("UserUploadedFileRepo - Create: successfully created user uploaded file", "id", userUploadedFileID)
+	r.logger.Info("UserUploadedFileRepo - Create: successfully created user uploaded file", "userUploadedFileID", userUploadedFileID)
 	return userUploadedFileID, nil
 }
 
@@ -124,6 +124,6 @@ func (r *UserUploadedFileRepo) UpdateEmailSent(ctx context.Context, ID int) erro
 		return fmt.Errorf("UserUploadedFileRepo - UpdateEmailSent - r.Pool.Exec: %w", err)
 	}
 
-	r.logger.Info("UserUploadedFileRepo - UpdateEmailSent: successfully updated user uploaded file", "id", ID)
+	r.logger.Info("UserUploadedFileRepo - UpdateEmailSent: successfully updated user uploaded file", "userUploadedFileID", ID)
 	return nil
 }
