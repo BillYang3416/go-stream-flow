@@ -18,7 +18,7 @@ func NewUserUploadedFileEmailSender(smtp *mail.SMTPClient, l logger.Logger) *Use
 }
 
 func (s *UserUploadedFileEmailSender) Send(ctx context.Context, uuf entity.UserUploadedFile) error {
-	s.logger.Info("Sending email to %s", uuf.EmailRecipient)
+	s.logger.Info("UserUploadedFileEmailSender - Send: sending email", "userUploadedFileID", uuf.ID)
 
 	email := mail.NewMSG()
 	email.SetFrom("bgg@mail.com").
