@@ -46,8 +46,8 @@ func (r *UserProfileRepo) Create(ctx context.Context, u entity.UserProfile) (ent
 	return u, nil
 }
 
-func (r *UserProfileRepo) GetByID(ctx context.Context, userId int) (entity.UserProfile, error) {
-	sql, args, err := r.Builder.Select("user_id", "display_name", "picture_url").From("user_profiles").Where("user_id = ?", userId).ToSql()
+func (r *UserProfileRepo) GetByID(ctx context.Context, userID int) (entity.UserProfile, error) {
+	sql, args, err := r.Builder.Select("user_id", "display_name", "picture_url").From("user_profiles").Where("user_id = ?", userID).ToSql()
 
 	if err != nil {
 		return entity.UserProfile{}, fmt.Errorf("UserProfileRepo - GetByID - r.Builder: %w", err)

@@ -23,8 +23,8 @@ func (uc *UserProfileUseCase) Create(ctx context.Context, userProfile entity.Use
 	return userProfile, nil
 }
 
-func (uc *UserProfileUseCase) GetByID(ctx context.Context, userId int) (entity.UserProfile, error) {
-	userProfile, err := uc.repo.GetByID(ctx, userId)
+func (uc *UserProfileUseCase) GetByID(ctx context.Context, userID int) (entity.UserProfile, error) {
+	userProfile, err := uc.repo.GetByID(ctx, userID)
 	if err != nil {
 		return entity.UserProfile{}, fmt.Errorf("UserProfileUseCase - Get - s.repo.Find: %w", err)
 	}

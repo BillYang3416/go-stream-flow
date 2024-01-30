@@ -8,13 +8,13 @@ import (
 )
 
 type UserProfile interface {
-	Create(context.Context, entity.UserProfile) (entity.UserProfile, error)
-	GetByID(context.Context, int) (entity.UserProfile, error)
+	Create(ctx context.Context, userProfile entity.UserProfile) (entity.UserProfile, error)
+	GetByID(ctx context.Context, userID int) (entity.UserProfile, error)
 }
 
 type UserProfileRepo interface {
-	Create(context.Context, entity.UserProfile) (entity.UserProfile, error)
-	GetByID(context.Context, int) (entity.UserProfile, error)
+	Create(ctx context.Context, userProfile entity.UserProfile) (entity.UserProfile, error)
+	GetByID(ctx context.Context, userID int) (entity.UserProfile, error)
 }
 
 type UserUploadedFile interface {
