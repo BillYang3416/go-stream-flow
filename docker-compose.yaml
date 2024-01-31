@@ -12,7 +12,6 @@ services:
     environment:
       LINE_CHANNEL_ID: ${LINE_CHANNEL_ID}
       LINE_CHANNEL_SECRET: ${LINE_CHANNEL_SECRET}
-      DATABASE_URL: ${DATABASE_URL}
       SESSION_SECRET: 1234
       APP_ENV: dev
     depends_on:
