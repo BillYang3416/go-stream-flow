@@ -8,6 +8,7 @@ http:
 
 postgres:
   pool_max: 10
+  password: 'postgres://admin:password@db:5432/poker_join_db?sslmode=disable'
 
 log:
   log_level: 'debug'
@@ -15,7 +16,7 @@ log:
 redis:
   host: 'redis'
   port: '6379'
-  password: 'postgres://admin:password@db:5432/poker_join_db?sslmode=disable'
+  password: ''
 
 rabbitmq:
   host: 'rabbitmq'
