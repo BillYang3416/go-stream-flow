@@ -1,13 +1,14 @@
 app:
   name: 'GoFlowGateway'
   version: '1.0.0'
-  domain_url: https://69fb-2001-b011-380f-192b-c8e4-df40-3a48-c977.ngrok-free.app
+  domain_url:
 
 http:
   port: '8080'
 
 postgres:
   pool_max: 10
+  url: 'postgres://admin:password@localhost:5432/go_flow_gateway_db?sslmode=disable'
 
 log:
   log_level: 'debug'

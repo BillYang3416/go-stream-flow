@@ -1,7 +1,7 @@
 app:
   name: 'GoFlowGateway'
   version: '1.0.0'
-  domain_url: https://69fb-2001-b011-380f-192b-c8e4-df40-3a48-c977.ngrok-free.app
+  domain_url:
 
 http:
   port: '8080'
@@ -15,7 +15,7 @@ log:
 redis:
   host: 'redis'
   port: '6379'
-  password: ''
+  password: 'postgres://admin:password@db:5432/poker_join_db?sslmode=disable'
 
 rabbitmq:
   host: 'rabbitmq'
