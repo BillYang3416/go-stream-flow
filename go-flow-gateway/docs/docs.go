@@ -142,7 +142,7 @@ const docTemplate = `{
         },
         "/user-profiles": {
             "post": {
-                "description": "Create user profile",
+                "description": "Create UserProfileRoutes",
                 "consumes": [
                     "application/json"
                 ],
@@ -150,12 +150,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User Profile"
+                    "UserProfileRoutes"
                 ],
-                "summary": "Create user profile",
+                "summary": "Create UserProfileRoutes",
                 "parameters": [
                     {
-                        "description": "user profile information",
+                        "description": "UserProfileRoutes information",
                         "name": "createUserProfileRequest",
                         "in": "body",
                         "required": true,
@@ -182,7 +182,7 @@ const docTemplate = `{
         },
         "/user-profiles/{userId}": {
             "get": {
-                "description": "Get user profile",
+                "description": "Get UserProfileRoutes",
                 "consumes": [
                     "application/json"
                 ],
@@ -190,9 +190,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User Profile"
+                    "UserProfileRoutes"
                 ],
-                "summary": "Get user profile",
+                "summary": "Get UserProfileRoutes",
                 "parameters": [
                     {
                         "type": "string",
@@ -234,7 +234,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "last id",
+                        "description": "last ID of the last record",
                         "name": "lastID",
                         "in": "query"
                     },

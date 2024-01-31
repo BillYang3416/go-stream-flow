@@ -191,9 +191,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create user profile
+      description: Create UserProfileRoutes
       parameters:
-      - description: user profile information
+      - description: UserProfileRoutes information
         in: body
         name: createUserProfileRequest
         required: true
@@ -210,14 +210,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/v1.errorResponse'
-      summary: Create user profile
+      summary: Create UserProfileRoutes
       tags:
-      - User Profile
+      - UserProfileRoutes
   /user-profiles/{userId}:
     get:
       consumes:
       - application/json
-      description: Get user profile
+      description: Get UserProfileRoutes
       parameters:
       - description: user id
         in: path
@@ -235,16 +235,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/v1.errorResponse'
-      summary: Get user profile
+      summary: Get UserProfileRoutes
       tags:
-      - User Profile
+      - UserProfileRoutes
   /user-uploaded-files:
     get:
       consumes:
       - application/json
       description: Get paginated files
       parameters:
-      - description: last id
+      - description: last ID of the last record
         in: query
         name: lastID
         type: integer

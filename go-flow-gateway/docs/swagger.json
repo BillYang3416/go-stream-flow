@@ -135,7 +135,7 @@
         },
         "/user-profiles": {
             "post": {
-                "description": "Create user profile",
+                "description": "Create UserProfileRoutes",
                 "consumes": [
                     "application/json"
                 ],
@@ -143,12 +143,12 @@
                     "application/json"
                 ],
                 "tags": [
-                    "User Profile"
+                    "UserProfileRoutes"
                 ],
-                "summary": "Create user profile",
+                "summary": "Create UserProfileRoutes",
                 "parameters": [
                     {
-                        "description": "user profile information",
+                        "description": "UserProfileRoutes information",
                         "name": "createUserProfileRequest",
                         "in": "body",
                         "required": true,
@@ -175,7 +175,7 @@
         },
         "/user-profiles/{userId}": {
             "get": {
-                "description": "Get user profile",
+                "description": "Get UserProfileRoutes",
                 "consumes": [
                     "application/json"
                 ],
@@ -183,9 +183,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "User Profile"
+                    "UserProfileRoutes"
                 ],
-                "summary": "Get user profile",
+                "summary": "Get UserProfileRoutes",
                 "parameters": [
                     {
                         "type": "string",
@@ -227,7 +227,7 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "last id",
+                        "description": "last ID of the last record",
                         "name": "lastID",
                         "in": "query"
                     },
