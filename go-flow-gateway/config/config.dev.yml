@@ -8,7 +8,7 @@ http:
 
 postgres:
   pool_max: 10
-  password: 'postgres://admin:password@db:5432/go_flow_gateway_db?sslmode=disable'
+  url: 'postgres://admin:password@db:5432/go_flow_gateway_db?sslmode=disable'
 
 log:
   log_level: 'debug'
