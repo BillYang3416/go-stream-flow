@@ -3,6 +3,7 @@ package v1
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -49,6 +50,7 @@ func setupUserUploadedFilesTable(t *testing.T) (*postgres.Postgres, func()) {
 }
 
 func setupUserUploadedFileRoute(t *testing.T) (*gin.Engine, *http.Cookie, *postgres.Postgres, func()) {
+
 	pg, dbTeardown := setupUserUploadedFilesTable(t)
 
 	ch, rabbitMQTeardown := setupRabbitMQ(t)
@@ -147,6 +149,64 @@ func TestUserUploadedFileRoute_Create(t *testing.T) {
 
 		if w.Code != http.StatusBadRequest {
 			t.Errorf("expected status code %d, got %d", http.StatusBadRequest, w.Code)
+		}
+	})
+}
+
+func TestUserUploadedFileRoute_GetPaginatedFiles(t *testing.T) {
+
+	router, sessionCookie, pg, teardown := setupUserUploadedFileRoute(t)
+	defer teardown()
+
+	const (
+		lastID         = 0
+		limit          = 10
+		httpMethod     = "GET"
+		fileName       = "test.txt"
+		fileContent    = "dummy file content"
+		emailRecipient = "johndoe@mail.com"
+		size           = 100
+		userID         = 1
+		emailSent      = false
+	)
+
+	t.Run("get paginated user uploaded files successfully", func(t *testing.T) {
+
+		// insert test data
+		query := `INSERT INTO user_uploaded_files (name, size, content, user_id,email_sent,email_recipient) VALUES ($1, $2, $3, $4,$5,$6);`
+		_, err := pg.Pool.Exec(context.Background(), query, fileName, size, fileContent, userID, emailSent, emailRecipient)
+		if err != nil {
+			t.Fatalf("could not insert test data: %s", err)
+		}
+
+		url := fmt.Sprintf("/api/v1/user-uploaded-files/?lastID=%d&limit=%d", lastID, limit)
+		req, err := http.NewRequest(httpMethod, url, nil)
+		if err != nil {
+			t.Fatalf("could not create request: %s", err)
+		}
+		req.AddCookie(sessionCookie)
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Errorf("expected status code %d, got %d", http.StatusOK, w.Code)
+		}
+	})
+
+	t.Run("get paginated user uploaded files with invalid request body", func(t *testing.T) {
+
+		url := fmt.Sprintf("/api/v1/user-uploaded-files/?lastID=%d&limit=%d", lastID, limit)
+		req, err := http.NewRequest(httpMethod, url, nil)
+		if err != nil {
+			t.Fatalf("could not create request: %s", err)
+		}
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		if w.Code != http.StatusUnauthorized {
+			t.Errorf("expected status code %d, got %d", http.StatusUnauthorized, w.Code)
 		}
 	})
 }
