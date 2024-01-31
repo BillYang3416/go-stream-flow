@@ -5,7 +5,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTabGroup } from '@angular/material/tabs';
 import { Router } from '@angular/router';
 import { ApiPrefix, ApiService } from 'src/app/core/services/api.service';
-import { environment } from 'src/environments/environment.dev';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -19,7 +19,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
 
   signUpForm!: FormGroup;
 
-  lineLoginUrl = environment.apiUrl + '/auth/line-login';
+  lineLoginUrl = environment.apiURL + '/auth/line-login';
 
   constructor(
     private formBuilder: FormBuilder,
@@ -48,6 +48,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
   }
 
   onSignIn(): void {
+    console.log(environment.apiURL);
     if (this.signInForm.invalid) {
       this.snackBar.open('Please enter username and password correctly', 'OK');
       return;

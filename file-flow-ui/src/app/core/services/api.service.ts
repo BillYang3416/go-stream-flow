@@ -7,13 +7,13 @@ import {
 } from '@angular/common/http';
 import { throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { environment } from 'src/environments/environment.dev';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApiService {
-  apiSource = environment.apiUrl;
+  apiSource = environment.apiURL;
 
   constructor(private http: HttpClient) {}
 
