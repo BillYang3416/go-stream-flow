@@ -5,17 +5,39 @@ GoStreamFlow is a streamlined system designed for efficient processing of files 
 
 ## Key Features
 
-1. Clean Architecture: The backbone for scalable and maintainable applications, ensuring clear separation of concerns.
-2. API Development with Gin: Essential for leveraging Go's strengths in building efficient, scalable web services.
-3. Unit Testing: Crucial for code quality and reliability, a must-have in the Go development workflow.
-4. Logging with zerolog: Key for application monitoring and debugging, optimizing Go's performance and concurrency capabilities.
-5. RabbitMQ Integration: Vital for asynchronous processing and decoupling system components, enhancing scalability.
-6. PostgreSQL Integration with pgx: Important for performance-optimized database interactions, showcasing advanced Go database handling.
-7. Configuration Management with cleanenv: Fundamental for application flexibility and easy management.
-8. Session Management with gin-session: Essential for securing user sessions and managing authentication.
-9. Swagger Documentation Generation: Improves API usability and developer experience through interactive documentation.
-10. MailHog Integration: Useful for safe email testing in development environments, without affecting real servers.
-11. Integration Testing with Dockertest: Supports realistic testing environments, crucial for verifying integrated system performance.
+- Clean Architecture: 
+  
+  The backbone for scalable and maintainable applications, ensuring clear separation of concerns.
+- API Development with Gin: 
+
+  Essential for leveraging Go's strengths in building efficient, scalable web services.
+- Unit Testing: 
+  
+  Crucial for code quality and reliability, a must-have in the Go development workflow.
+- Logging with zerolog: 
+  
+  Key for application monitoring and debugging, optimizing Go's performance and concurrency capabilities.
+- RabbitMQ Integration: 
+  
+  Vital for asynchronous processing and decoupling system components, enhancing scalability.
+- PostgreSQL Integration with pgx:
+
+  Important for performance-optimized database interactions, showcasing advanced Go database handling.
+- Configuration Management with cleanenv: 
+  
+  Fundamental for application flexibility and easy management.
+- Session Management with gin-session: 
+  
+  Essential for securing user sessions and managing authentication.
+- Swagger Documentation Generation: 
+  
+  Improves API usability and developer experience through interactive documentation.
+- MailHog Integration: 
+  
+  Useful for safe email testing in development environments, without affecting real servers.
+- Integration Testing with Dockertest: 
+  
+  Supports realistic testing environments, crucial for verifying integrated system performance.
 
 ## Components:
 1. **Frontend App - FileFlowUI**: 
@@ -67,7 +89,7 @@ Before you begin, ensure you have the following installed on your system:
 - Clone the Repository
 
    ```bash
-   git clone [repository URL]
+   git clone https://github.com/BillYang3416/go-stream-flow.git
    ```
 
 - Run the build script in root of project dictionary
