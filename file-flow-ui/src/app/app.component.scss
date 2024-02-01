@@ -1,0 +1,34 @@
+.spacer {
+  flex: 1 1 auto;
+}
+
+.sidenav-container {
+  height: 100vh;
+}
+
+.sidenav {
+  box-shadow: 3px 0 6px rgba(0, 0, 0, 0.24);
+  width: 250px; /* Specify a fixed width for the sidenav */
+}
+
+mat-nav-list a {
+  font-size: 16px;
+  color: #333333;
+  line-height: 40px; /* Gives more vertical space for each list item */
+  padding-left: 24px; /* Aligns text with the Material Design specifications */
+  text-decoration: none; /* Removes underlines from links */
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.04); /* Light highlight on hover */
+  }
+
+  &.router-link-active {
+    background: #e0e0e0; /* Different background for the active link */
+    font-weight: bold;
+  }
+
+  mat-icon {
+    vertical-align: middle;
+    padding-right: 12px;
+  }
+}

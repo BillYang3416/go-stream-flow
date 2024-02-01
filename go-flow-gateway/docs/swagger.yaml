@@ -1,0 +1,296 @@
+basePath: /api/v1
+definitions:
+  entity.UserUploadedFile:
+    properties:
+      content:
+        type: string
+      createdAt:
+        type: string
+      emailRecipient:
+        description: The email address of the recipient
+        type: string
+      emailSent:
+        description: Indicates if the email was sent successfully
+        type: boolean
+      emailSentAt:
+        description: The timestamp when the email was sent
+        type: string
+      errorMessage:
+        description: // Error message if the email was not sent successfully
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      size:
+        type: integer
+      userId:
+        type: integer
+    type: object
+  v1.LoginRequest:
+    properties:
+      password:
+        example: password
+        type: string
+      username:
+        example: username
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  v1.RegisterRequest:
+    properties:
+      displayName:
+        example: billyang
+        type: string
+      password:
+        example: password
+        type: string
+      username:
+        example: useraname
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  v1.RegisterResponse:
+    properties:
+      userID:
+        example: userID
+        type: string
+    type: object
+  v1.createUserProfileRequest:
+    properties:
+      displayName:
+        example: John Doe
+        type: string
+      pictureUrl:
+        example: https://example.com/picture.jpg
+        type: string
+    required:
+    - displayName
+    - pictureUrl
+    type: object
+  v1.errorResponse:
+    properties:
+      fieldErrs:
+        additionalProperties:
+          type: string
+        type: object
+      message:
+        example: message
+        type: string
+    type: object
+  v1.getPaginatedFilesResponse:
+    properties:
+      files:
+        items:
+          $ref: '#/definitions/entity.UserUploadedFile'
+        type: array
+      totalRecords:
+        type: integer
+    type: object
+  v1.userProfileResponse:
+    properties:
+      displayName:
+        example: John Doe
+        type: string
+      pictureUrl:
+        example: https://example.com/picture.jpg
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a Go Flow Gateway API server.
+  version: "1.0"
+paths:
+  /auth/line-callback:
+    get:
+      description: Handler the redirect from Line Login and set user session
+      parameters:
+      - description: Authorization code returned from Line Login
+        in: query
+        name: code
+        required: true
+        type: string
+      responses:
+        "302":
+          description: Redirect URL
+          schema:
+            type: string
+      summary: Line Callback
+      tags:
+      - Auth
+  /auth/line-login:
+    get:
+      description: Redirect to Line Login
+      produces:
+      - text/html
+      responses:
+        "302":
+          description: Redirect URL
+          schema:
+            type: string
+      summary: Line Login
+      tags:
+      - Auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login
+      parameters:
+      - description: login information
+        in: body
+        name: LoginRequest
+        required: true
+        schema:
+          $ref: '#/definitions/v1.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No content
+      summary: Login
+      tags:
+      - Auth
+  /auth/logout:
+    get:
+      description: Logout
+      responses:
+        "204":
+          description: No content
+      summary: Logout
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register
+      parameters:
+      - description: register information
+        in: body
+        name: RegisterRequest
+        required: true
+        schema:
+          $ref: '#/definitions/v1.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Succesfully registered
+          schema:
+            $ref: '#/definitions/v1.RegisterResponse'
+      summary: Register
+      tags:
+      - Auth
+  /user-profiles:
+    post:
+      consumes:
+      - application/json
+      description: Create UserProfileRoutes
+      parameters:
+      - description: UserProfileRoutes information
+        in: body
+        name: createUserProfileRequest
+        required: true
+        schema:
+          $ref: '#/definitions/v1.createUserProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.userProfileResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      summary: Create UserProfileRoutes
+      tags:
+      - UserProfileRoutes
+  /user-profiles/{userId}:
+    get:
+      consumes:
+      - application/json
+      description: Get UserProfileRoutes
+      parameters:
+      - description: user id
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.userProfileResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      summary: Get UserProfileRoutes
+      tags:
+      - UserProfileRoutes
+  /user-uploaded-files:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated files
+      parameters:
+      - description: last ID of the last record
+        in: query
+        name: lastID
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.getPaginatedFilesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      summary: Get paginated files
+      tags:
+      - User Uploaded File
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create user uploaded file
+      parameters:
+      - description: email recipient
+        in: formData
+        name: emailRecipient
+        required: true
+        type: string
+      - description: file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      summary: Create user uploaded file
+      tags:
+      - User Uploaded File
+swagger: "2.0"

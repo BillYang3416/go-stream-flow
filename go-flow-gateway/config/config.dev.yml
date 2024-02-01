@@ -1,0 +1,29 @@
+app:
+  name: 'GoFlowGateway'
+  version: '1.0.0'
+  domain_url:
+
+http:
+  port: '8080'
+
+postgres:
+  pool_max: 10
+  url: 'postgres://admin:password@db:5432/go_flow_gateway_db?sslmode=disable'
+
+log:
+  log_level: 'debug'
+
+redis:
+  host: 'redis'
+  port: '6379'
+  password: ''
+
+rabbitmq:
+  host: 'rabbitmq'
+  port: '5672'
+  username: 'guest'
+  password: 'guest'
+
+mailhog:
+  host: 'mailhog'
+  port: '1025'

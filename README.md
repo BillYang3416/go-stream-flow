@@ -1,28 +1,82 @@
-# go-stream-flow
+# GoStreamFlow
+
+## Overview
+GoStreamFlow is a streamlined system designed for efficient processing of files and emails using Go (Golang). This platform excels in managing file uploads and automating email distribution tasks, offering a comprehensive workflow from user interface to execution.
+
+## Key Features
+
+1. Clean Architecture: The backbone for scalable and maintainable applications, ensuring clear separation of concerns.
+2. API Development with Gin: Essential for leveraging Go's strengths in building efficient, scalable web services.
+3. Unit Testing: Crucial for code quality and reliability, a must-have in the Go development workflow.
+4. Logging with zerolog: Key for application monitoring and debugging, optimizing Go's performance and concurrency capabilities.
+5. RabbitMQ Integration: Vital for asynchronous processing and decoupling system components, enhancing scalability.
+6. PostgreSQL Integration with pgx: Important for performance-optimized database interactions, showcasing advanced Go database handling.
+7. Configuration Management with cleanenv: Fundamental for application flexibility and easy management.
+8. Session Management with gin-session: Essential for securing user sessions and managing authentication.
+9. Swagger Documentation Generation: Improves API usability and developer experience through interactive documentation.
+10. MailHog Integration: Useful for safe email testing in development environments, without affecting real servers.
+11. Integration Testing with Dockertest: Supports realistic testing environments, crucial for verifying integrated system performance.
 
 ## Components:
 1. **Frontend App - FileFlowUI**: 
-   - A sleek Angular application where users upload files and enter email information.
-   - It interacts with the backend to initiate the file and email processing workflow.
+   - A modern Angular application where users can upload files and enter email information.
+   - Directly interacts with GoFlowGateway for initiating file and email processing.
 
-2. **First Golang Application - GoFileGate**: 
-   - This app acts as the primary gateway for processing user uploads. 
-   - It receives files and email data from FileFlowUI, stores the records, and then sends this information to a RabbitMQ broker.
-
-3. **Second Golang Application - GoMailDistributor**: 
-   - This application is responsible for consuming messages from the RabbitMQ broker.
-   - It sends the file to the specified email address and posts success or failure messages to another queue on the broker.
+2. **Golang Application - GoFlowGateway**: 
+   - A versatile application that incorporates the functionalities of file processing and email distribution.
+   - Handles files and email data from FileFlowUI, manages records, interfaces with RabbitMQ for messaging, and oversees the email distribution process.
 
 ## Workflow:
-- The user uploads a file and inputs email details on FileFlowUI.
-- FileFlowUI sends this data to GoFileGate, which records it and forwards it to RabbitMQ.
-- GoMailDistributor picks up the message, processes it (i.e., sends the file to the intended recipient), and updates the job status on another RabbitMQ queue.
-- GoFileGate receives the status update and modifies the record accordingly.
-- The user is then able to see the status of their file upload and email dispatch on FileFlowUI.
+- User Signs Up/Signs In on FileFlowUI:
 
-## Why These Names?
-- **GoStreamFlow** encapsulates the core functionality of the project — streaming and processing data (files and emails) using Golang.
-- **FileFlowUI** reflects the user-facing aspect of the project, emphasizing file uploads and user interactions.
-- **GoFileGate** suggests a gateway role, handling initial data intake and queuing.
-- **GoMailDistributor** accurately describes the app's role in distributing emails and handling message queue responses.
+   Users register and log in through the FileFlowUI before accessing the file upload and email submission features.
+   ![account](imgs/account.jpg)
 
+- File Upload and Email Submission:
+
+   Authenticated users upload files and submit email details on FileFlowUI.
+   ![upload file](imgs/upload-file.jpg)
+- GoFlowGateway Processes Data:
+
+   Handles authentication, receives files and email data from FileFlowUI, manages records, and interfaces with RabbitMQ.
+- RabbitMQ for Messaging:
+
+   GoFlowGateway sends file and email data to RabbitMQ.
+- Email Distribution via MailHog:
+
+   GoFlowGateway consumes messages from RabbitMQ and sends the file to recipients using MailHog instead of a direct email distribution.
+   ![mailhog](imgs/mailhog.jpg)
+- Status Update and Tracking:
+
+   GoFlowGateway updates the job status in RabbitMQ.
+   Users track the status of file uploads and email dispatches on FileFlowUI, now with the knowledge that emails are sent to MailHog for capture.
+   ![file status](imgs/file-status.jpg)
+
+## How to Get Started
+This section will guide you through setting up GoStreamFlow on your system. Follow these steps to quickly get the system running.
+
+### Prerequisites
+Before you begin, ensure you have the following installed on your system:
+
+- Docker and Docker Compose: For container management and orchestration.
+- Go (Golang): Required for building the GoFlowGateway application.
+- Git: For cloning the repository to your local machine.
+
+### Installation & Setup
+
+- Clone the Repository
+
+   ```bash
+   git clone [repository URL]
+   ```
+
+- Run the build script in root of project dictionary
+
+   ```bash
+   ./build.sh
+   ```
+
+- click here to explore [GoStreamFlow](http://localhost) in your local machine
+
+### Next Steps
+After setting up, you're ready to use GoStreamFlow for managing file uploads and automating email distribution tasks. Explore the FileFlowUI to upload files and submit email details for processing.

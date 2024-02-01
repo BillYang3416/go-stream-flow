@@ -1,0 +1,60 @@
+<div class="home-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>GoStreamFlow Components</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <h2>1. Frontend App - FileFlowUI</h2>
+      <p>
+        A sleek Angular application where users upload files and enter email
+        information. It interacts with GoFlowGateway to initiate the file and
+        email processing workflow.
+      </p>
+
+      <h2>2. Golang Application - GoFlowGateway</h2>
+      <p>
+        A comprehensive application that manages both file uploads and email
+        distribution. It receives files and email data from FileFlowUI, manages
+        records, and coordinates with RabbitMQ to process and distribute the
+        data efficiently.
+      </p>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Workflow</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <p>
+        The user uploads a file and inputs email details on FileFlowUI.
+        FileFlowUI sends this data to GoFlowGateway. The application then
+        processes this data, managing the records and interacting with RabbitMQ.
+        It oversees the file distribution to the specified email addresses and
+        handles the message queue responses. The user can subsequently view the
+        status of their file upload and email dispatch on FileFlowUI.
+      </p>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Why These Names?</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <p>
+        <strong>GoStreamFlow:</strong> This encapsulates the core functionality
+        of the project — streaming and processing data using Golang.
+      </p>
+      <p>
+        <strong>FileFlowUI:</strong> Reflects the user-facing aspect of the
+        project, emphasizing file uploads and user interactions.
+      </p>
+      <p>
+        <strong>GoFlowGateway:</strong> Represents the integration of file
+        processing and email distribution. It highlights its role as a central
+        gateway for managing data flow within the GoStreamFlow ecosystem.
+      </p>
+    </mat-card-content>
+  </mat-card>
+</div>

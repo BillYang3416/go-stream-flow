@@ -1,0 +1,40 @@
+<div class="file-flow-container">
+  <mat-card class="upload-card">
+    <mat-card-header>
+      <mat-card-title>Upload File and Enter Email</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-form-field class="full-width-input" appearance="outline">
+        <mat-label>Email Address</mat-label>
+        <input
+          matInput
+          placeholder="Enter your email"
+          required
+          [formControl]="emailRecipient"
+        />
+        <mat-error *ngIf="emailRecipient.invalid">
+          {{ getEmailErrorMessage() }}
+        </mat-error>
+      </mat-form-field>
+      <div class="file-upload-wrapper">
+        <input
+          #fileUpload
+          type="file"
+          id="fileUpload"
+          hidden
+          (change)="onFileSelected($event)"
+        />
+        <button mat-raised-button (click)="fileUpload.click()">
+          Choose File
+        </button>
+        <span>{{ fileName }}</span>
+      </div>
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-raised-button color="primary" (click)="onSubmit()">
+        Submit
+      </button>
+      <button mat-button color="warn" (click)="onReset()">Reset</button>
+    </mat-card-actions>
+  </mat-card>
+</div>
